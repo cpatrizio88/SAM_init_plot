@@ -9,10 +9,10 @@ matplotlib.rcParams.update({'font.size': 14})
 
 plt.style.use('seaborn-white')
 
-fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
+fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT_BACKUP/'
 fout = '/Users/cpatrizio/Dropbox/research/SAM RCE figures/'
 
-nc_in = glob.glob(fpath + '*.nc')[0]
+nc_in = glob.glob(fpath + '*40days.nc')[0]
 
 nc_data = Dataset(nc_in)
 
@@ -24,7 +24,7 @@ p = nc_vars['p'][:]
 
 t = nc_vars['time'][:]
 
-dt = t[-1] - t[-2]
+dt = (t[-1] - t[-2]) #difference between OUT_STAT output in days
 
 
 profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QCOND', 'QV', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR']
@@ -36,8 +36,9 @@ for i, profile_name in enumerate(profile_names):
     profile_var = nc_vars[profile_name]
     profile = profile_var[:]
     t0profile = profile[0,:]
-    tendprofile = profile[-1, :]
+    tendprofile = profile[-1,:]
     tt, zz = np.meshgrid(t, z)
+    
     #t-z plots
     plt.figure(1)
     ax = plt.gca()
@@ -48,6 +49,7 @@ for i, profile_name in enumerate(profile_names):
     plt.ylabel('z (km)')
     plt.savefig(fout + 'profile{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
+    
     #difference between model start and model end profiles
     plt.figure(2)
     plt.plot(t0profile, z, label='{0} at t = 0'.format(profile_name))
@@ -58,17 +60,33 @@ for i, profile_name in enumerate(profile_names):
     plt.legend()
     plt.savefig(fout + 'diffprofile{0}days_'.format(np.round(t[-1]))  + profile_name + '_idealRCE.pdf')
     plt.clf()
+    
     #time tendency (in units of per day) at model end 
+    #get the difference between time-averaged profiles near the model end
     plt.figure(3)
-    ddtprofile = (profile[-1, :] - profile[-2,:])/dt
+    
+    nave = 12 #average the profiles over nave hours to get the daily time tendency
+    tendaveprofile = np.sum(profile[-nave:,:], axis=0)/nave
+    tendaveprofile_prev = np.sum(profile[-2*nave:-nave], axis=0)/nave
+    ddtprofile = (tendaveprofile - tendaveprofile_prev)/(nave*dt)
+    frac_ddtprofile = ddtprofile/tendaveprofile_prev
     plt.plot(ddtprofile, z)
     plt.xlabel('time tendency of {0} ({1} per day)'.format(profile_name, profile_var.units))
     plt.ylabel('z (km)')
-    plt.title('time tendency of {0} ({1} per day) at t = {2} days'.format(profile_name, profile_var.units, np.round(t[-1])))
-    plt.savefig(fout + 'ddt{0}days_'.format(np.round(t[-1])) + profile_name + 'idealRCE.pdf')
+    plt.title('time tendency of {0} ({1} per day) at end of model run'.format(profile_name, profile_var.units))
+    plt.savefig(fout + 'ddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
-  
     
+    #percent change tendency 
+    plt.figure(4)
+    plt.plot(frac_ddtprofile*100., z)
+    plt.xlabel('percent change time tendency (% per day)')
+    plt.ylabel('z (km)')
+    plt.title('percent change time tendency of {0} (% per day) at end of model run'.format(profile_name, profile_var.units))
+    plt.savefig(fout + 'percentddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
+    plt.clf()
+    
+  
 for i, ts_name in enumerate(timeseries_names):
     ts_var = nc_vars[ts_name]
     ts = ts_var[:]
