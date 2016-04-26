@@ -12,7 +12,7 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Users/cpatrizio/Dropbox/research/SAM RCE 60 days/'
+fout = '/Users/cpatrizio/Dropbox/research/SAM RCE 60 days figs/'
 
 nc_in = glob.glob(fpath + '*60days.nc')[0]
 nc_data = Dataset(nc_in)
@@ -70,6 +70,30 @@ for i, profile_name in enumerate(profile_names):
     plt.savefig(fout + 'diffprofile{0}days_'.format(np.round(t[-1]))  + profile_name + '_idealRCE.pdf')
     plt.clf()
     
+    #plot the lapse rate
+    if (profile_name == 'TABS'):
+        gamma = np.zeros(z.shape)
+        delz = np.diff(z)/1e3 #delta z in km
+        delT = np.diff(profile, axis=1)
+        gamma0 = delT[0,:]/delz
+        gamma40days = delT[index_40days, :]
+        gammaend = delT[-1,:]
+        plt.figure()
+        ax = plt.gca()
+        plt.plot(gamma0, p[:-1], label='lapse rate at t = 0'.format(profile_name))
+        plt.plot(gamma40days, p[:-1], label='lapse rate at t = {1} days'.format(profile_name, np.round(t[index_40days])))
+        plt.plot(gammaend, p[:-1], label='lapse rate at t = {1} days'.format(profile_name, np.round(t[-1])))
+        ax.set_yscale('log')
+        plt.yticks([1000, 500, 250, 100, 50, 20])
+        ax.set_ylim(p[-1], p[0])
+        ax.invert_yaxis()
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        plt.xlabel('lapse rate (K/km)')
+        plt.ylabel('p (hPa)')
+        plt.legend()
+        plt.savefig(fout + 'diffprofile{0}days_'.format(np.round(t[-1])) + 'gamma_idealRCE.pdf')
+        plt.clf()
+        
     #time tendency (in units of per day) at model end 
     #get the difference between time-averaged profiles near the model end
     plt.figure(3)
@@ -79,8 +103,6 @@ for i, profile_name in enumerate(profile_names):
     tendaveprofile_prev = np.sum(profile[-2*nave:-nave], axis=0)/nave
     ddtprofile = (tendaveprofile - tendaveprofile_prev)/(nave*dt)
     frac_ddtprofile = ddtprofile/tendaveprofile_prev
-    if (profile_name == 'QCOND'):
-       print(frac_ddtprofile)
     plt.plot(ddtprofile, p)
     ax.set_yscale('log')
     ax.set_ylim(p[-1], p[0])
