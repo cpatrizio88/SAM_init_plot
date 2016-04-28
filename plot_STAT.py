@@ -31,6 +31,11 @@ for i, profile_name in enumerate(profile_names):
     profile = profile_var[:]
     tt, zz = np.meshgrid(t, z)
     tt, pp = np.meshgrid(t, p)
+    nave = 12 #average the profiles over nave hours to get the daily time tendency
+    tendaveprofile = np.sum(profile[-nave:,:], axis=0)/nave
+    tendaveprofile_prev = np.sum(profile[-2*nave:-nave], axis=0)/nave
+    ddtprofile = (tendaveprofile - tendaveprofile_prev)/(nave*dt)
+    frac_ddtprofile = ddtprofile/tendaveprofile_prev
     
     #t-z plots
     plt.figure(1)
@@ -55,9 +60,12 @@ for i, profile_name in enumerate(profile_names):
     t0profile = profile[0,:]
     t40profile = profile[index_40days, :]
     tendprofile = profile[-1,:]
-    plt.plot(t0profile, p, label='{0} at t = 0'.format(profile_name))
-    plt.plot(t40profile, p, label='{0} at t = {1} days'.format(profile_name, np.round(t[index_40days])))
-    plt.plot(tendprofile, p, label='{0} at t = {1} days'.format(profile_name, np.round(t[-1])))
+    #get the profile from the previous day (assume time step in hours)
+    tprevendprofile = profile[-nave,:]
+    plt.plot(t0profile, p, 'k--', label='{0} at t = 0'.format(profile_name))
+    plt.plot(t40profile, p, 'b-', label='{0} at t = {1} days'.format(profile_name, np.round(t[index_40days])))
+    plt.plot(tendaveprofile_prev, p, 'r-', label='{:d}-hour average {:s} at t = {:3.1f} days'.format(nave, profile_name, t[-nave]))
+    plt.plot(tendaveprofile, p, 'k-', label='{:d}-hour average {:s} at t = {:3.1f} days'.format(nave, profile_name, t[-1]))
     ax.set_yscale('log')
     plt.yticks([1000, 500, 250, 100, 50, 20])
     ax.set_ylim(p[-1], p[0])
@@ -80,9 +88,9 @@ for i, profile_name in enumerate(profile_names):
         gammaend = delT[-1,:]
         plt.figure()
         ax = plt.gca()
-        plt.plot(gamma0, p[:-1], label='lapse rate at t = 0'.format(profile_name))
-        plt.plot(gamma40days, p[:-1], label='lapse rate at t = {1} days'.format(profile_name, np.round(t[index_40days])))
-        plt.plot(gammaend, p[:-1], label='lapse rate at t = {1} days'.format(profile_name, np.round(t[-1])))
+        plt.plot(gamma0, p[:-1], 'k--', label='lapse rate at t = 0'.format(profile_name))
+        plt.plot(gamma40days, p[:-1], 'b-', label='lapse rate at t = {:3.1f} days'.format(t[index_40days]))
+        plt.plot(gammaend, p[:-1], 'k-', label='lapse rate at t = {:3.1f} days'.format(t[-1]))
         ax.set_yscale('log')
         plt.yticks([1000, 500, 250, 100, 50, 20])
         ax.set_ylim(p[-1], p[0])
@@ -98,11 +106,13 @@ for i, profile_name in enumerate(profile_names):
     #get the difference between time-averaged profiles near the model end
     plt.figure(3)
     ax = plt.gca()
-    nave = 24 #average the profiles over nave hours to get the daily time tendency
-    tendaveprofile = np.sum(profile[-nave:,:], axis=0)/nave
-    tendaveprofile_prev = np.sum(profile[-2*nave:-nave], axis=0)/nave
-    ddtprofile = (tendaveprofile - tendaveprofile_prev)/(nave*dt)
-    frac_ddtprofile = ddtprofile/tendaveprofile_prev
+    #nave = 24 #average the profiles over nave hours to get the daily time tendency
+    #tendaveprofile = np.sum(profile[-nave:,:], axis=0)/nave
+    #tendaveprofile_prev = np.sum(profile[-2*nave:-nave], axis=0)/nave
+    #ddtprofile = (tendaveprofile - tendaveprofile_prev)/(nave*dt)
+    #frac_ddtprofile = ddtprofile/tendaveprofile_prev
+    #ddtprofile = (tendprofile - tprevendprofile)/(dt)
+    #frac_ddtprofile = ddtprofile/tprevendprofile
     plt.plot(ddtprofile, p)
     ax.set_yscale('log')
     ax.set_ylim(p[-1], p[0])
@@ -111,7 +121,7 @@ for i, profile_name in enumerate(profile_names):
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.xlabel('time tendency of {0} ({1} per day)'.format(profile_name, profile_var.units))
     plt.ylabel('p (hPa)')
-    plt.title('time tendency of {0} ({1} per day) at end of model run (change between mean profiles on day {2} and day {3})'.format(profile_name, profile_var.units, np.floor(t[-2]), np.round(t[-1])))
+    plt.title('time tendency of {0} ({1} per day) at end of model run (using {2}-hour average profiles at end of model run)'.format(profile_name, profile_var.units, nave))
     plt.savefig(fout + 'ddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
     
@@ -126,7 +136,7 @@ for i, profile_name in enumerate(profile_names):
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.xlabel('percent change time tendency (% per day)')
     plt.ylabel('p (hPa)')
-    plt.title('percent change time tendency of {0} (% per day) at end of model run (change between mean profiles on day {2} and day {3})'.format(profile_name, profile_var.units, np.floor(t[-2]), np.round(t[-1])))
+    plt.title('percent change time tendency of {0} (% per day) at end of model run (using {2}-hour average profiles at end of model run)'.format(profile_name, profile_var.units, nave))
     plt.savefig(fout + 'percentddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
     
