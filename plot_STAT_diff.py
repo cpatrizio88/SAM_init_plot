@@ -12,13 +12,13 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Users/cpatrizio/figures/SAM_RCE100days_nudgediff/'
+fout = '/Users/cpatrizio/figures/SAM_RCE100days_96kmnudgediff/'
 
 nc_in1 = glob.glob(fpath + '*1500m*100days.nc')[0]
-nc_in2 = glob.glob(fpath + '*5000m*100days.nc')[0]
+nc_in2 = glob.glob(fpath + '*1500m*100days_nudgeuv.nc')[0]
 
 delx1=1500
-delx2=5000
+delx2=1500
 
 nc_data1 = Dataset(nc_in1)
 nc_data2 = Dataset(nc_in2)

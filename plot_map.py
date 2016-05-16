@@ -12,9 +12,9 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fout = '/Users/cpatrizio/figures/SAM RCE 100 days figs/'
+fout = '/Users/cpatrizio/figures/figures/'
 
-nc_in = glob.glob(fpath + '*100days.nc')[0]
+nc_in = glob.glob(fpath + '*90days_uv0.nc')[0]
 
 nc_data= Dataset(nc_in)
 vari = nc_data.variables

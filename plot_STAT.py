@@ -12,9 +12,9 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Users/cpatrizio/figures/SAM_RCE100days_96kmnudgeuv/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr90days_768km/'
 
-nc_in = glob.glob(fpath + '*1500m*100days_nudgeuv.nc')[0]
+nc_in = glob.glob(fpath + '*375m*90days*uv0.nc')[0]
 nc_data = Dataset(nc_in)
 nc_vars = nc_data.variables
 
@@ -56,7 +56,7 @@ for i, profile_name in enumerate(profile_names):
     #difference between model start and model end profiles
     plt.figure(2)
     ax = plt.gca()
-    index_mid = np.where(t >= 60)[0][0]
+    index_mid = np.where(t >= 20)[0][0]
     t0profile = profile[0,:]
     tmidprofile = profile[index_mid, :]
     tendprofile = profile[-1,:]
