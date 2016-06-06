@@ -12,9 +12,11 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr90days_768km/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to95_1536km_64vert_ubarzero/'
 
-nc_in = glob.glob(fpath + '*375m*90days*uv0.nc')[0]
+nc_in = glob.glob(fpath + '*512x512*3000m*90days*302K*.nc')[0]
+
+
 nc_data = Dataset(nc_in)
 nc_vars = nc_data.variables
 
@@ -22,8 +24,9 @@ z = nc_vars['z'][:]
 p = nc_vars['p'][:]
 t = nc_vars['time'][:]
 dt = (t[-1] - t[-2]) #difference between OUT_STAT output in days
+tdouble = 90
 
-profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QCOND', 'QV', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR']
+profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QN', 'QCL', 'QI', 'QPL', 'QPI', 'QV', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR']
 timeseries_names = ['PW', 'LHF', 'SHF', 'PREC', 'CAPE', 'LWNTOA', 'LWNT', 'SWNTOA', 'LWDS', 'SWNS', 'CLDLOW'] 
 
 for i, profile_name in enumerate(profile_names):
@@ -50,13 +53,14 @@ for i, profile_name in enumerate(profile_names):
     plt.title('{0} ({1})'.format(profile_name, profile_var.units))
     plt.xlabel('t (days)')
     plt.ylabel('p (hPa)')
+    plt.axvline(tdouble)
     plt.savefig(fout + 'profile{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
     
     #difference between model start and model end profiles
     plt.figure(2)
     ax = plt.gca()
-    index_mid = np.where(t >= 20)[0][0]
+    index_mid = np.where(t >= 90)[0][0]
     t0profile = profile[0,:]
     tmidprofile = profile[index_mid, :]
     tendprofile = profile[-1,:]
@@ -84,8 +88,8 @@ for i, profile_name in enumerate(profile_names):
         delz = np.diff(z)/1e3 #delta z in km
         delT = np.diff(profile, axis=1)
         gamma0 = delT[0,:]/delz
-        gamma40days = delT[index_mid, :]
-        gammaend = delT[-1,:]
+        gamma40days = delT[index_mid, :]/delz
+        gammaend = delT[-1,:]/delz
         plt.figure()
         ax = plt.gca()
         plt.plot(gamma0, p[:-1], 'k--', label='lapse rate at t = 0'.format(profile_name))
@@ -143,6 +147,7 @@ for i, ts_name in enumerate(timeseries_names):
     plt.xlabel('t (days)')
     plt.ylabel('{0} ({1})'.format(ts_name, ts_var.units))
     plt.title('{0} ({1})'.format(ts_name, ts_var.units))
+    plt.axvline(tdouble)
     plt.savefig(fout + 'timeseries{0}days_'.format(np.round(t[-1]))  + ts_name + '_idealRCE.pdf')
     plt.clf()
     
@@ -156,6 +161,7 @@ for i, ts_name in enumerate(timeseries_names):
         plt.xlabel('t (days)')
         plt.ylabel('QNTOA (W/m2)')
         plt.plot(t, QNTOA_ts, 'k')
+        plt.axvline(tdouble)
         plt.savefig(fout + 'timeseries{0}days_'.format(np.round(t[-1])) + 'QNTOA' + '_idealRCE.pdf')
         plt.clf()
         

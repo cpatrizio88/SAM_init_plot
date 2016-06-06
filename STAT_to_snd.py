@@ -7,7 +7,7 @@ snd_path =  '/Users/cpatrizio/SAM6.10.8/RCE_IDEAL/'
 
 snd_inname = 'snd_ideal'
 
-nc_in = glob.glob(fpath + '*100days.nc')[0]
+nc_in = glob.glob(fpath + '*80days_304K.nc')[0]
 nc_data = Dataset(nc_in)
 nc_vars = nc_data.variables
 
@@ -19,7 +19,6 @@ theta_STAT = nc_vars['THETA'][:]
 
 qv_RCE = qv_STAT[-1,:]
 theta_RCE = theta_STAT[-1,:]
-
 
 snd_in = np.loadtxt(snd_path + snd_inname, skiprows=0)
 
@@ -38,7 +37,7 @@ snd_out[:,3] = qv_RCE
 snd_out[:,4] = u
 snd_out[:,5] = v
 
-fname_out = 'snd_RCE'
+fname_out = 'snd_304aggr'
 head='z[m] p[mb] T[K] q[g/kg] u[m/s] v[m/s]'
 
 np.savetxt(snd_path + fname_out, snd_out, delimiter=' ', header=head, fmt='%3.4f')

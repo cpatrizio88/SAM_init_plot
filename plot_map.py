@@ -12,35 +12,45 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fout = '/Users/cpatrizio/figures/figures/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr130days_768km_64vert_ubarzero_MAPS/'
 
-nc_in = glob.glob(fpath + '*90days_uv0.nc')[0]
+nc_in = glob.glob(fpath + '*3000m*130days_302K.nc')[0]
 
 nc_data= Dataset(nc_in)
-vari = nc_data.variables
-times = vari['time'][:]
+varis = nc_data.variables
+times = varis['time'][:]
 
-x = vari['x'][:]
-y = vari['y'][:]
+x = varis['x'][:]
+y = varis['y'][:]
 
 xx, yy = np.meshgrid(x, y)
-
+#LWNT: OLR
+#Prec: surface precip
 varname = 'PW'
-tstep=int(24*8)
-field = vari[varname][:]
+vari = varis[varname]
+tstep=int(24)
+field = vari[:]
+usfc = varis['USFC'][:]
+vsfc = varis['VSFC'][:]
+minvar= np.min(field)
+maxvar= np.max(field)
+#minvar = 20
+#maxvar = 250
+tstart=60*tstep
 
-for t in times[::tstep]:
+for i in np.arange(tstart, len(times)+tstep, tstep):
     plt.figure()
-    plt.contourf(xx/1e3, yy/1e3, field[t,:,:], 30, cmap=cm.RdYlBu)
+    plt.contour(xx/1e3, yy/1e3, field[i,:,:], np.linspace(minvar, maxvar, 12), colors='k', alpha=0.5)
+    #q = plt.quiver(xx[::8, ::8]/1e3, yy[::8, ::8]/1e3, usfc[i,::8,::8], vsfc[i,::8,::8], scale=500, alpha=0.8, zorder=1)
+    plt.contourf(xx/1e3, yy/1e3, field[i,:,:], np.linspace(minvar, maxvar, 12),cmap=cm.RdYlBu_r, zorder=0)
+    #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 15, "15 m/s",coordinates='data',color='k', alpha=0.8)
     plt.xlabel('x (km)')
     plt.ylabel('y (km)')
-    plt.title('{:s} at t = {:3.2f}'.format(varname, t))
+    plt.title('{:s} [{:s}] at t = {:3.2f} days'.format(varname, vari.units, times[i]))
     plt.colorbar()
-    plt.show()
-
-
-
-
+    #cb = plt.colorbar(ticks=np.arange(10,90), 10)
+    plt.savefig(fout + '{:s}map_day{:2.1f}.pdf'.format(varname,times[i]))
+    plt.close()
 
 
 
