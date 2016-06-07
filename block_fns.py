@@ -93,6 +93,24 @@ def blocksort2D(sfield, ofield, db):
     od = collections.OrderedDict(sorted(d.items()))
     
     return od
+    
+def vert_int(field, p):
+    """
+    vertically integrates a field over pressure. 
+    if hydrostatic atmoshpere, this is equivalent to density weighted vertical integral.
+    
+    """
+    dp3D= np.ones(field.shape)
+    dp3D= np.transpose(dp3D)
+    dp = -np.diff(p)
+    dp3D[:,:,:]=dp
+    dp3D = np.transpose(dp3D)
+    
+    fieldhat = np.sum(np.multiply(field, dp3D), axis=0)
+    return fieldhat
+    
+    
+    
 
   
     

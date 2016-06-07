@@ -6,8 +6,11 @@ import numpy as np
 import matplotlib
 import matplotlib.cm as cm
 from thermolib.wsat import wsat
+import thermolib.constants as constants
 import SAM_init_plot.block_fns
-from SAM_init_plot.block_fns import blockave2D, blockave3D, blocksort2D
+from SAM_init_plot.block_fns import blockave2D, blockave3D, blocksort2D, vert_int
+
+c = constants()
 
 rho_w = 1000 #density of water
 g=9.81 #gravitational acceleration
@@ -32,6 +35,7 @@ nc_data2D = Dataset(nc_in2D)
 varis3D = nc_data3D.variables
 varis2D = nc_data2D.variables
 
+t = varis3D['time'][:]
 x = varis3D['x'][:]
 y = varis3D['y'][:]
 xx, yy = np.meshgrid(x, y)
@@ -71,8 +75,14 @@ db=16
 
 PW_LHFsort = blocksort2D(PW_tave, LHF_tave, db)
 
+#MSE
+z3D = np.ones((x.size, y.size, z.size))
+z3D[:,:,:]=z
+z = np.transpose(z)
+z4D = np.repeat(z3D[np.newaxis,:,:,:], t.size, axis=0)
 
-
+#MSE calculation
+h = c.cp*T + g*z + c.lv0*qv
 
 #plt.figure(1)
 #plt.contour(xx/1e3, yy/1e3, PW_tave, 20, colors='k', alpha=0.5)
