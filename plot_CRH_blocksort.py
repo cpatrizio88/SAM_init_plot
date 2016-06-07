@@ -3,10 +3,11 @@ import site
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
-import matplotlib.cm as cm
 import matplotlib
+import matplotlib.cm as cm
 from thermolib.wsat import wsat
-from SAM_init_plot.block_fns import blockave2D
+import SAM_init_plot.block_fns
+from SAM_init_plot.block_fns import blockave2D, blockave3D, blocksort2D
 
 rho_w = 1000 #density of water
 g=9.81 #gravitational acceleration
@@ -31,9 +32,6 @@ nc_data2D = Dataset(nc_in2D)
 varis3D = nc_data3D.variables
 varis2D = nc_data2D.variables
 
-ti=-1
-ntave=4
-
 x = varis3D['x'][:]
 y = varis3D['y'][:]
 xx, yy = np.meshgrid(x, y)
@@ -43,15 +41,12 @@ p = p*1e2
 qv = varis3D['QV'][:]
 qv = qv*1e-3
 T = varis3D['TABS'][:]
-#T_tave = np.mean(T[ti-ntave,:,:,:])
-#qv_tave = np.mean(qv[ti-ntave,:,:,:])
+PW = varis2D['PW'][:]
+LHF = varis2D['LHF'][:]
 delp3D = np.ones((x.size, y.size, z.size-1))
 delp = -np.diff(p)
 delp3D[:,:,:] = delp
 delp3D = np.transpose(delp3D)
-
-PW = varis2D['PW'][:]
-PW_tave = np.mean(PW[ti-ntave:ti,:,:], axis=0)
 
 #PW = 1/(g*rho_w)*np.sum(np.multiply(delp3D, qv_t[:-1,:,:]), axis=0)
 #SPW = np.zeros(PW.shape)
@@ -61,9 +56,23 @@ PW_tave = np.mean(PW[ti-ntave:ti,:,:], axis=0)
 #    SPW[:,:] = 1/(g*rho_w)*np.sum(np.multiply(delp3D, wsat(T_i[i,:,:], plev)))
 #CRH = PW/SPW
 
+ti=-1
+ntave=4
+
+qv_tave = np.mean(qv[ti-ntave:ti,:,:,:], axis=0)
+PW_tave = np.mean(PW[ti-ntave:ti,:,:], axis=0)
+LHF_tave = np.mean(LHF[ti-ntave:ti:,:], axis=0)
+
 #width of block in units of dx
 db=16
-PW_blocked = blockave2D(PW_tave, db)
+
+#PW_blocked = blockave2D(PW_tave, db)
+#qv_blocked = blockave3D(qv_tave, db)
+
+PW_LHFsort = blocksort2D(PW_tave, LHF_tave, db)
+
+
+
 
 #plt.figure(1)
 #plt.contour(xx/1e3, yy/1e3, PW_tave, 20, colors='k', alpha=0.5)

@@ -1,5 +1,5 @@
 import numpy as np
-
+import collections
 
 
 def blockave2D(field, db):
@@ -45,7 +45,7 @@ def blockave3D(field, db):
     #tave_field = np.mean(field[ti-ntave:ti,:,:,:])
     #tave_field = np.squeeze(tave_field)
     
-    blockfield = np.zeros(nz, nxblock, nyblock)
+    blockfield = np.zeros((nz, nxblock, nyblock))
     
     for i in range(nz):
         field_z = field[i,:,:]
@@ -81,9 +81,18 @@ def blocksort2D(sfield, ofield, db):
     #tave_field = np.squeeze(tave_field)
     
     #split up field column-wise, take average row-wise. then split up resulting field row-wise, and take average column-wise.
-    blockfield = np.average(np.split(np.average(np.split(sfield, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
+    blocksfield = np.average(np.split(np.average(np.split(sfield, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
     
-    return blockfield
+    blockofield = np.average(np.split(np.average(np.split(ofield, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
+    
+    blocksfield = blocksfield.flatten()
+    blockofield = blockofield.flatten()
+    
+    d = dict(zip(blocksfield, blockofield))
+    
+    od = collections.OrderedDict(sorted(d.items()))
+    
+    return od
 
   
     
