@@ -12,9 +12,10 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to95_1536km_64vert_ubarzero/'
+#fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to95_1536km_64vert_ubarzero/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr130days_768km_64vert_ubarzero/'
 
-nc_in = glob.glob(fpath + '*512x512*3000m*90days*302K*.nc')[0]
+nc_in = glob.glob(fpath + '*256x256*3000m*130days*302K*.nc')[0]
 
 
 nc_data = Dataset(nc_in)
@@ -27,7 +28,7 @@ dt = (t[-1] - t[-2]) #difference between OUT_STAT output in days
 tdouble = 90
 
 profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QN', 'QCL', 'QI', 'QPL', 'QPI', 'QV', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR']
-timeseries_names = ['PW', 'LHF', 'SHF', 'PREC', 'CAPE', 'LWNTOA', 'LWNT', 'SWNTOA', 'LWDS', 'SWNS', 'CLDLOW'] 
+timeseries_names = ['PW', 'LHF', 'SHF', 'PREC', 'CAPE', 'LWNTOA', 'LWNT', 'SWNTOA', 'LWNS', 'SWNS', 'CLDLOW'] 
 
 for i, profile_name in enumerate(profile_names):
     profile_var = nc_vars[profile_name]
