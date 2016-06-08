@@ -1,5 +1,8 @@
 import numpy as np
 import collections
+from thermolib.constants import constants
+
+c = constants()
 
 
 def blockave2D(field, db):
@@ -94,19 +97,22 @@ def blocksort2D(sfield, ofield, db):
     
     return od
     
-def vert_int(field, p):
+def vertint(field, p):
     """
     vertically integrates a field over pressure. 
     if hydrostatic atmoshpere, this is equivalent to density weighted vertical integral.
-    
+    ignore the last level of field when integrating to have consistent shape with diff(p)
     """
-    dp3D= np.ones(field.shape)
+    nz = field.shape[0]
+    nx = field.shape[1]
+    ny = field.shape[2]
+    dp3D= np.ones((nz-1, nx, ny))
     dp3D= np.transpose(dp3D)
     dp = -np.diff(p)
     dp3D[:,:,:]=dp
     dp3D = np.transpose(dp3D)
     
-    fieldhat = np.sum(np.multiply(field, dp3D), axis=0)
+    fieldhat = (1/c.g)*np.sum(np.multiply(field[:-1,:,:], dp3D), axis=0)
     return fieldhat
     
     
