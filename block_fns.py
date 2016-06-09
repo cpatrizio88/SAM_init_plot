@@ -26,9 +26,6 @@ def blockave2D(field, db):
     nxblock = nx // db
     nyblock = ny // db
     
-    #tave_field = np.mean(field[ti-ntave:ti,:,:])
-    #tave_field = np.squeeze(tave_field)
-    
     #split up field column-wise, take average row-wise. then split up resulting field row-wise, and take average column-wise.
     blockfield = np.average(np.split(np.average(np.split(field, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
     
@@ -44,9 +41,6 @@ def blockave3D(field, db):
     
     nxblock = nx // db
     nyblock = ny // db
-    
-    #tave_field = np.mean(field[ti-ntave:ti,:,:,:])
-    #tave_field = np.squeeze(tave_field)
     
     blockfield = np.zeros((nz, nxblock, nyblock))
     
@@ -66,9 +60,6 @@ def blocksort2D(sfield, ofield, db):
     ofield is sorted according to sfield (spatial structure is lost)
     
     the returned value is a dictionary with sfield as the key and ofield as the value 
-    
-    in the case of 3D field, averaging is only performed in horizontal direction 
-    (so the value of the dictionary will be a 1D array). 
     
     assumes nx = ny = even integer.
     db must be a multiple of nx
@@ -97,6 +88,49 @@ def blocksort2D(sfield, ofield, db):
     
     return od
     
+def blocksort3D(sfield, ofield, db):
+    """
+    Takes a nx x ny field and a nz x nx x ny field and divides them into horizontal blocks - the new fields have
+    dimensions nx' x ny' where nx' = nx/db, ny' = ny/db
+    db is half the block width in number of grid cells. 
+    the fields are averaged over the horizontal block area (db points) and then 
+    ofield is sorted according to sfield 
+    (horizontal spatial structure is lost, only retain vertical structure.. so the resulting ofield is sorted profiles)
+    
+    the returned value is a tuple with the sorted fields (sfield, ofield)
+     
+    assumes nx = ny = even integer.
+    db must be a multiple of nx
+    
+    """
+    
+    nz = ofield.shape[0]
+    nx = ofield.shape[1]
+    ny = ofield.shape[2]
+    
+    nxblock = nx // db
+    nyblock = ny // db
+    
+    blocksfield = np.average(np.split(np.average(np.split(sfield, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
+    
+    blockofield = np.zeros((nz, nxblock, nyblock))
+    
+    for i in range(nz):
+        field_z = ofield[i,:,:]
+        blockofield[i,:,:] = np.average(np.split(np.average(np.split(field_z, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
+        
+    blocksfield = blocksfield.flatten()
+    
+    blockofield = blockofield.reshape((nz, nxblock*nyblock))
+    
+    sorter = blocksfield.argsort()
+    blocksfield = np.sort(blocksfield)
+    blockofield = blockofield[:,sorter]
+    
+    return (blocksfield, blockofield)
+    
+
+     
 def vertint(field, p):
     """
     vertically integrates a field over pressure. 
