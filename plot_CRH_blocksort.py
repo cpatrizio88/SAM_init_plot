@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 from thermolib.wsat import wsat
 from thermolib.constants import constants
 import SAM_init_plot.block_fns
-from SAM_init_plot.block_fns import blockave2D, blockave3D, blocksort2D, vertint
+from SAM_init_plot.block_fns import blockave2D, blocksort2D, blocksort3D, vertint
 
 c = constants()
 
@@ -62,7 +62,6 @@ LWNSC = varis2D['LWNSC'][:]
 netSW = SWNT-SWNS
 netLW = LWNS-LWNT
 netSWC = SWNTC-SWNSC
-#something wrong with LWNT
 netLWC = LWNSC-LWNTC
 
 CRH = PW/SWVP
@@ -134,8 +133,6 @@ corr_netSWs = np.zeros(CRHs.shape)
 corr_netSWclds = np.zeros(CRHs.shape)
 corr_netLWclds = np.zeros(CRHs.shape)
 
-
-
 for i, ti in enumerate(times):
 
     #MSE and FMSE calculations
@@ -145,7 +142,7 @@ for i, ti in enumerate(times):
     #is it possible to get MSE and FMSE from 2D fields? 
     #problem: T is coming from 3D field, which is output 6-hourly as opposed to hourly
     #this is an inconsistency when daily averaging is performed.
-    That = vertint(T_tave[ti,:,:], p)
+    That = vertint(T_tave[ti,:,:,:], p)
     zhat = vertint(z3D, p)
     qvhat = c.rhol*1e-3*PW_tave[ti,:,:]
     qihat = c.rhoi*1e-3*IWP_tave[ti,:,:]
@@ -177,11 +174,11 @@ for i, ti in enumerate(times):
     netLWcld = netLWcld_tave[ti,:,:] - np.mean(netLWcld_tave[ti,:,:])
     
     
-    corr_SEF = (hhatprime*SEFprime)/varhhatprime
-    corr_netLW = (hhatprime*netLWprime)/varhhatprime
-    corr_netSW = (hhatprime*netSWprime)/varhhatprime
-    corr_netSWcld = (hhatprime*netSWcld)/varhhatprime
-    corr_netLWcld = (hhatprime*netLWcld)/varhhatprime
+    corr_SEF = (hfhatprime*SEFprime)/varhfhatprime
+    corr_netLW = (hfhatprime*netLWprime)/varhfhatprime
+    corr_netSW = (hfhatprime*netSWprime)/varhfhatprime
+    corr_netSWcld = (hfhatprime*netSWcld)/varhfhatprime
+    corr_netLWcld = (hfhatprime*netLWcld)/varhfhatprime
     
     print 'CRH block sorting'
     CRH_SEFsort = blocksort2D(CRH_tave[ti,:,:], corr_SEF, db)
@@ -202,7 +199,48 @@ CRHranks = np.arange(np.size(CRHs[0,:]))
 rankss, tt = np.meshgrid(CRHranks, times)
 tt = tt+t2D[-1]
 
-#clear-sky vs. all-sky, to determine effects of clouds
+#test blocksort3D. working properly - do temporal averges?
+CRH_qvsort = blocksort3D(CRH_tave[-1,:,:], qv_tave[-1,:,:,:], db)
+qvsort = CRH_qvsort[1]
+
+CRHs_t = CRHs[-1,:]
+
+CRHq1 = np.percentile(CRHs_t, 25)
+CRHq2 = np.percentile(CRHs_t, 50)
+CRHq3 = np.percentile(CRHs_t, 75)
+CRHq4 = np.percentile(CRHs_t, 100)
+
+qvq1 = qvsort[:, CRHs_t < CRHq1]
+qvq2 = qvsort[:, np.bitwise_and(CRHs_t > CRHq1, CRHs_t < CRHq2)]
+qvq3 = qvsort[:, np.bitwise_and(CRHs_t > CRHq2, CRHs_t < CRHq3)]
+qvq4 = qvsort[:, CRHs_t > CRHq3]
+
+qvq1bar = np.mean(qvq1, axis=1)
+qvq2bar = np.mean(qvq2, axis=1)
+qvq3bar = np.mean(qvq3, axis=1)
+qvq4bar = np.mean(qvq4, axis=1)
+
+#test make PW 2D (CRH, t) frequency map - working properly.
+timeslong = np.arange(0, 130)
+CRHslong =  np.zeros((timeslong.size, nblocks))
+for i, t in enumerate(timeslong):
+    print i
+    CRHslong[i,:] = np.sort(blockave2D(CRH_tave[i,:,:], db).flatten())
+    
+ranksslong, ttlong = np.meshgrid(CRHranks, timeslong)
+tcoords = ttlong.flatten()
+CRHcoords = CRHslong.flatten()
+heatmap, xedges, yedges = np.histogram2d(CRHcoords, np.transpose(tcoords), bins=(256,130))
+
+extent = [CRHranks[0], CRHranks[-1], yedges[-1], yedges[0]]
+
+plt.figure(3)
+plt.imshow(np.transpose(heatmap), extent=extent, cmap=cm.RdYlBu_r)
+plt.colorbar()
+plt.show()
+
+
+
 
 plt.figure(1)
 f, axarr = plt.subplots(5,1)
@@ -221,6 +259,15 @@ f.subplots_adjust(right=0.8)
 f.colorbar(cf, cax=cbar_ax)
 plt.show()
 
+plt.figure(2)
+plt.plot(qvq1bar, z/1e3, label='q1')
+plt.plot(qvq2bar, z/1e3, label='q2')
+plt.plot(qvq3bar, z/1e3, label='q3')
+plt.plot(qvq4bar, z/1e3, label='q4')
+plt.legend()
+plt.title('average water vapor profiles sorted by CRH quartiles, at day {0}'.format(t3D[-1]))
+plt.show()
+
 #plt.contour(xx/1e3, yy/1e3, hhatprime/varhhatprime, 20, colors='k', alpha=0.5)
 #plt.contourf(xx/1e3, yy/1e3, hhatprime/varhhatprime, 20, cmap=cm.RdYlBu_r, zorder=0)
 #plt.title('h^''/var(h^'')')
@@ -232,16 +279,13 @@ plt.show()
 #plt.title('hf^''/var(hf^'')')
 #plt.colorbar()
 #plt.show()
-
-plt.figure(4)
-plt.plot(CRHs, corr_SEFs, label='corr_SEF')
-plt.plot(CRHs, corr_netLWs, label='corr_netLW')
-plt.plot(CRHs, corr_netSWs, label='corr_netSW')
-plt.legend()
-plt.title('correlation between total surface heat flux and column relative humidity at day={:2.1f}'.format(t2D[ti]))
-plt.show()
-
-
+#plt.figure(4)
+#plt.plot(CRHs, corr_SEFs, label='corr_SEF')
+#plt.plot(CRHs, corr_netLWs, label='corr_netLW')
+#plt.plot(CRHs, corr_netSWs, label='corr_netSW')
+#plt.legend()
+#plt.title('correlation between total surface heat flux and column relative humidity at day={:2.1f}'.format(t2D[ti]))
+#plt.show()
 #plt.figure(3)
 #plt.contour(xx[::db,::db]/1e3, yy[::db,::db]/1e3, CRH_blocked, 20, colors='k', alpha=0.5)
 #plt.contourf(xx[::db,::db]/1e3, yy[::db,::db]/1e3, CRH_blocked, 20, cmap=cm.RdYlBu_r, zorder=0)
