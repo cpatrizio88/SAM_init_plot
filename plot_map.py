@@ -12,9 +12,9 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr130days_768km_64vert_ubarzero_MAPS/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to120_3072km_64vert_ubarzero_MAPS/'
 
-nc_in = glob.glob(fpath + '*3000m*130days_302K.nc')[0]
+nc_in = glob.glob(fpath + '*1024x1024*3000m*day90to120_302K.nc')[0]
 
 nc_data= Dataset(nc_in)
 varis = nc_data.variables
@@ -26,9 +26,9 @@ y = varis['y'][:]
 xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
-varname = 'PW'
+varname = 'LWNT'
 vari = varis[varname]
-tstep=int(24)
+tstep=int(12)
 field = vari[:]
 usfc = varis['USFC'][:]
 vsfc = varis['VSFC'][:]
@@ -37,8 +37,9 @@ maxvar= np.max(field)
 #minvar = 20
 #maxvar = 250
 tstart=60*tstep
+tstart=0
 
-for i in np.arange(tstart, len(times)+tstep, tstep):
+for i in np.arange(tstart, len(times), tstep):
     plt.figure()
     plt.contour(xx/1e3, yy/1e3, field[i,:,:], np.linspace(minvar, maxvar, 12), colors='k', alpha=0.5)
     #q = plt.quiver(xx[::8, ::8]/1e3, yy[::8, ::8]/1e3, usfc[i,::8,::8], vsfc[i,::8,::8], scale=500, alpha=0.8, zorder=1)

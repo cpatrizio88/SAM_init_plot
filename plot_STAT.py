@@ -13,10 +13,11 @@ plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
 #fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to95_1536km_64vert_ubarzero/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr130days_768km_64vert_ubarzero/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr120days_3072km_64vert_ubarzero_STAT/'
 
-nc_in = glob.glob(fpath + '*256x256*3000m*130days*302K*.nc')[0]
+domsize = 3072
 
+nc_in = glob.glob(fpath + '*1024x1024*3000m*120days*302K*.nc')[0]
 
 nc_data = Dataset(nc_in)
 nc_vars = nc_data.variables
@@ -51,7 +52,7 @@ for i, profile_name in enumerate(profile_names):
     ax.invert_yaxis()
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.colorbar(label='{0} ({1})'.format(profile_name, profile_var.units), orientation='horizontal')
-    plt.title('{0} ({1})'.format(profile_name, profile_var.units))
+    plt.title(r'{:s} ({:s}), domain size {:4.0f} $km^2$'.format(profile_name, profile_var.units, domsize))
     plt.xlabel('t (days)')
     plt.ylabel('p (hPa)')
     plt.axvline(tdouble)
@@ -78,7 +79,7 @@ for i, profile_name in enumerate(profile_names):
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.xlabel('{0} ({1})'.format(profile_name, profile_var.units))
     plt.ylabel('p (hPa)')
-    plt.title('{0} ({1})'.format(profile_name, profile_var.units))
+    plt.title(r'{:s} ({:s}), domain size {:4.0f} $km^2$'.format(profile_name, profile_var.units, domsize))
     plt.legend()
     plt.savefig(fout + 'evoprofile{0}days_'.format(np.round(t[-1]))  + profile_name + '_idealRCE.pdf')
     plt.clf()
@@ -120,34 +121,33 @@ for i, profile_name in enumerate(profile_names):
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.xlabel('time tendency of {0} ({1} per day)'.format(profile_name, profile_var.units))
     plt.ylabel('p (hPa)')
-    plt.title('time tendency of {:s} ({:s} per day) at end of model run (using {:2.2f}-day time averaged profiles at end of model run)'.format(profile_name, profile_var.units, nave/24.))
+    plt.title(r'time tendency of {:s} ({:s} per day) at end of model run (using {:2.2f}-day time averaged profiles at end of model run), domain size {:4.0f} $km^2$ '.format(profile_name, profile_var.units, nave/24., domsize))
     plt.savefig(fout + 'ddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
     plt.clf()
     
     #percent change tendency 
-    plt.figure(4)
-    ax = plt.gca()
-    plt.plot(frac_ddtprofile*100., p)
-    ax.set_yscale('log')
-    plt.yticks([1000, 500, 250, 100, 50, 20])
-    ax.set_ylim(p[-1], p[0])
-    ax.invert_yaxis()
-    ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    plt.xlabel('percent change time tendency (% per day)')
-    plt.ylabel('p (hPa)')
-    plt.title('percent change time tendency of {:s} (% per day) at end of model run (using {:2.2f}-day time averaged profiles at end of model run)'.format(profile_name, nave/24.))
-    plt.savefig(fout + 'percentddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
-    plt.clf()
+    #plt.figure(4)
+    #ax = plt.gca()
+    #plt.plot(frac_ddtprofile*100., p)
+    #ax.set_yscale('log')
+    #plt.yticks([1000, 500, 250, 100, 50, 20])
+    #ax.set_ylim(p[-1], p[0])
+    #ax.invert_yaxis()
+    #ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    #plt.xlabel('percent change time tendency (% per day)')
+    #plt.ylabel('p (hPa)')
+    #plt.title('percent change time tendency of {:s} (% per day) at end of model run (using {:2.2f}-day time averaged profiles at end of model run)'.format(profile_name, nave/24.))
+    #plt.savefig(fout + 'percentddt{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.pdf')
+    #plt.clf()
     
 for i, ts_name in enumerate(timeseries_names):
     ts_var = nc_vars[ts_name]
     ts = ts_var[:]
     plt.figure(1)
     plt.plot(t, ts, '-k')
-    plt.title('{0} ({1})'.format(ts_name, ts_var.units))
+    plt.title(r'{:s} ({:s}), domain size {:4.0f} $km^2$'.format(ts_name, ts_var.units, domsize))
     plt.xlabel('t (days)')
     plt.ylabel('{0} ({1})'.format(ts_name, ts_var.units))
-    plt.title('{0} ({1})'.format(ts_name, ts_var.units))
     plt.axvline(tdouble)
     plt.savefig(fout + 'timeseries{0}days_'.format(np.round(t[-1]))  + ts_name + '_idealRCE.pdf')
     plt.clf()
@@ -158,7 +158,7 @@ for i, ts_name in enumerate(timeseries_names):
         LWNTOA_ts = ts
         SWNTOA_ts = nc_vars['SWNTOA'][:]
         QNTOA_ts = SWNTOA_ts - LWNTOA_ts 
-        plt.title('QNTOA (W/m2)')
+        plt.title(r'QNTOA (W/m2), domain size {:4.0f} $km^2$'.format(domsize))
         plt.xlabel('t (days)')
         plt.ylabel('QNTOA (W/m2)')
         plt.plot(t, QNTOA_ts, 'k')

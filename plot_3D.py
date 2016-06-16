@@ -76,7 +76,7 @@ varPWx = np.var(PW, axis=1)
 indx = np.where(varPWx == np.max(varPWx))[0]
 
 #average fields over some time period
-nave=4*20 #time step of 3D fields is 6 hours (so 4*2 = 2 days)
+nave=4*10 #time step of 3D fields is 6 hours 
 delt = np.diff(times)[0]*24 #time slice in hours
 
 qv_t_yslice = np.squeeze(qv_t[:,:,indx])
