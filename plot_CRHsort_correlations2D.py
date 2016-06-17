@@ -21,10 +21,10 @@ plt.style.use('seaborn-white')
 
 fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr100days_12288km_64vert_ubarzero_CRHSORT/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr200days_12288km_64vert_ubarzero_CRHSORT/'
 
-nc_in3D = glob.glob(fpath3D + '*4096x64*3000m*100days*302K.nc')[0]
-nc_in2D = glob.glob(fpath2D + '*4096x64*3000m*100days*302K.nc')[0]
+nc_in3D = glob.glob(fpath3D + '*4096x64*3000m*200days*302K.nc')[0]
+nc_in2D = glob.glob(fpath2D + '*4096x64*3000m*200days*302K.nc')[0]
 
 nc_data3D = Dataset(nc_in3D)
 nc_data2D = Dataset(nc_in2D)
@@ -129,7 +129,6 @@ z2D = np.transpose(z2D)
 #dx = 3 km, so db = 16*3 = 48 km
 db=16
 
-#look at last 40 days of simulation (only have 3D data from day 90 to day 130)
 times=np.arange(0, t3D[-1])
 nblocks = (nx/db)
 
@@ -143,6 +142,8 @@ corr_netSWCs = np.zeros(CRHs.shape)
 corr_netLWCs = np.zeros(CRHs.shape)
 
 for i, ti in enumerate(times):
+    
+    ####TODO: calculate time tendency of h^', to get convergence of h^'
 
     #MSE and FMSE calculations
     print 'calculating vertically integrated MSE and FMSE'
@@ -251,8 +252,8 @@ axarr[6].set_title('corr_netLW due to clear-sky')
 cbar_ax = f.add_axes([0.85, 0.15, 0.05, 0.7])
 f.subplots_adjust(right=0.8)
 cb = f.colorbar(cf, cax=cbar_ax)
-plt.xlabel('CRH rank')
-plt.ylabel('days')
+#TODO: add superior x,y axis labels
+#plt.ylabel('days')
 cb.set_label('correlation')
 plt.savefig(fout + 'CRHsort_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()

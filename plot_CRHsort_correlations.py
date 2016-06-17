@@ -70,7 +70,7 @@ T = varis3D['TABS'][:]
 w = varis3D['W'][:]
 
 #1D variables
-rhoz = p/(c.Rd*np.mean(np.mean(T, axis=2), axis=3))
+rhoz = p/(c.Rd*np.mean(np.mean(T, axis=3), axis=2))
 
 
 #averaging time period for 2D & 3D fields
@@ -145,6 +145,8 @@ corr_netLWCs = np.zeros(CRHs.shape)
 
 #loop over times to calculate FMSE feedback terms
 for i, ti in enumerate(times):
+    
+    ####TODO: calculate time tendency of h^', to get convergence of h^'
 
     #MSE and FMSE calculations
     print 'calculating vertically integrated MSE and FMSE'
@@ -270,7 +272,7 @@ plt.legend()
 plt.savefig(fout + 'mean_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()
 
-#plot domain mean correlations
+
 
 
 

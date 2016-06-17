@@ -13,11 +13,11 @@ plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
 #fout = '/Users/cpatrizio/figures/SST302/SAM_aggrday90to95_1536km_64vert_ubarzero/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr120days_3072km_64vert_ubarzero_STAT/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr200days_12288km_64vert_ubarzero_STAT/'
 
 domsize = 3072
 
-nc_in = glob.glob(fpath + '*1024x1024*3000m*120days*302K*.nc')[0]
+nc_in = glob.glob(fpath + '*4096*64*3000m*200days*302K*.nc')[0]
 
 nc_data = Dataset(nc_in)
 nc_vars = nc_data.variables
