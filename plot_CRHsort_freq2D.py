@@ -16,10 +16,10 @@ plt.style.use('seaborn-white')
 
 fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fout = '/Users/cpatrizio/figures/SST302/SAM_aggr100days_12288km_64vert_ubarzero_CRHSORT/'
+fout = '/Users/cpatrizio/figures/SST302/SAM_aggr200days_12288km_64vert_ubarzero_CRHSORT/'
 
-nc_in3D = glob.glob(fpath3D + '*4096*64*3000m*100days*302K.nc')[0]
-nc_in2D = glob.glob(fpath2D + '*4096*64*3000m*100days*302K.nc')[0]
+nc_in3D = glob.glob(fpath3D + '*4096*64*3000m*200days*302K.nc')[0]
+nc_in2D = glob.glob(fpath2D + '*4096*64*3000m*200days*302K.nc')[0]
 
 domsize=12288
 

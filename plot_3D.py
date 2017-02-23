@@ -87,7 +87,6 @@ aveqv_t_yslice = np.squeeze(aveqv_t[:,:,indx])
 minqv = np.min(qv)
 maxqv = np.max(qv)
 
-
 plt.figure(1)
 ax = plt.gca()
 plt.contour(xx/1e3, zz/1e3, aveqv_t_yslice, np.linspace(minqv, maxqv, 24), colors='k', alpha=0.5)

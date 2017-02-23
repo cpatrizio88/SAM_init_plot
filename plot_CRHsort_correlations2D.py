@@ -15,7 +15,7 @@ p_s = 1015
 T_s = 302
 
 matplotlib.rcParams.update({'font.size': 14})
-matplotlib.rcParams.update({'figure.figsize': (18, 12)})
+matplotlib.rcParams.update({'figure.figsize': (20, 14)})
 
 plt.style.use('seaborn-white')
 
@@ -82,6 +82,10 @@ nt2D = t2D.size
 nz = z.size
 nx = x.size
 
+
+dt3D = np.diff(t3D)[0]
+dt3D = dt3D*(3600*24) #convert from days to seconds
+
 print 'calculating temporal averages'
 #2D fields (6-hourly output)
 #reshape to take daily averages
@@ -141,6 +145,11 @@ corr_netLWclds = np.zeros(CRHs.shape)
 corr_netSWCs = np.zeros(CRHs.shape)
 corr_netLWCs = np.zeros(CRHs.shape)
 
+corr_convs = np.zeros(CRHs.shape)
+
+hfhatprimes = np.zeros((times.size, nx))
+hfhatprimesort = np.zeros(CRHs.shape)
+
 for i, ti in enumerate(times):
     
     ####TODO: calculate time tendency of h^', to get convergence of h^'
@@ -174,8 +183,10 @@ for i, ti in enumerate(times):
     hfhatprime = hfhat - hfhatbar
     varhfhatprime = np.var(hfhatprime)
     
-    #calculate hhat'(SEF' + NetSW' + NetLW' )
+    hfhatprimes[ti,:] = hfhatprime
+  
     
+    #calculate hhat'(SEF' + NetSW' + NetLW' )
     SEFprime = SEF_tave[ti,:] - np.mean(SEF_tave[ti,:])
     netLWprime = netLW_tave[ti,:] - np.mean(netLW_tave[ti,:])
     netSWprime = netSW_tave[ti,:] - np.mean(netSW_tave[ti,:])
@@ -184,7 +195,6 @@ for i, ti in enumerate(times):
     netSWC = netSWC_tave[ti,:] - np.mean(netSWC_tave[ti,:])
     netLWC = netLWC_tave[ti,:] - np.mean(netLWC_tave[ti,:])
     
-    
     corr_SEF = (hfhatprime*SEFprime)/varhfhatprime
     corr_netLW = (hfhatprime*netLWprime)/varhfhatprime
     corr_netSW = (hfhatprime*netSWprime)/varhfhatprime
@@ -192,7 +202,7 @@ for i, ti in enumerate(times):
     corr_netLWcld = (hfhatprime*netLWcld)/varhfhatprime
     corr_netSWC = (hfhatprime*netSWC)/varhfhatprime
     corr_netLWC = (hfhatprime*netLWC)/varhfhatprime
-
+    
     print 'CRH block sorting'
     CRH_SEFsort = blocksort1D(CRH_tave[ti,:], corr_SEF, db)
     CRH_netLWsort = blocksort1D(CRH_tave[ti,:], corr_netLW, db)
@@ -201,6 +211,7 @@ for i, ti in enumerate(times):
     CRH_netLWcldsort = blocksort1D(CRH_tave[ti,:], corr_netLWcld, db)
     CRH_netSWCsort = blocksort1D(CRH_tave[ti,:], corr_netSWC, db)
     CRH_netLWCsort = blocksort1D(CRH_tave[ti,:], corr_netLWC, db)
+    CRH_hfhatprimesort = blocksort1D(CRH_tave[ti, :], hfhatprime, db)
     
     CRHs[i,:] = CRH_SEFsort.keys()
     corr_SEFs[i,:] = CRH_SEFsort.values()
@@ -210,7 +221,20 @@ for i, ti in enumerate(times):
     corr_netLWclds[i,:] = CRH_netLWcldsort.values()
     corr_netSWCs[i,:] = CRH_netSWCsort.values()
     corr_netLWCs[i,:] = CRH_netLWCsort.values()
-
+    hfhatprimesort[i,:] = CRH_hfhatprimesort.values()
+    
+    #calculate correlation of h^' with horizontal convergence of FMSE
+    if ti > times[0]:
+        ddthfhatprime = (hfhatprimes[ti,:] - hfhatprimes[ti-1,:])/dt3D
+        #calculate the horizontal divergence as the difference between time tendency
+        #of h^' and the rest of the budget terms
+        conv = ddthfhatprime  - (SEFprime + netLWprime + netSWprime)
+        corr_conv = (hfhatprime*conv)/varhfhatprime
+        CRH_convsort = blocksort1D(CRH_tave[ti,:], corr_conv, db)
+        corr_convs[i,:] = CRH_convsort.values()
+    
+ 
+#corr_convs = corr_convs[1:,:] 
 #going to want to contour correlations in 2D (CRH rank, time)
 CRHranks = np.arange(np.size(CRHs[0,:]))
 rankss, tt = np.meshgrid(CRHranks, times)
@@ -231,25 +255,30 @@ CRHfreqs, xedges, yedges = np.histogram2d(CRHcoords, np.transpose(tcoords), bins
 extent = [CRHranks[0], CRHranks[-1], yedges[-1], yedges[0]]
 
 ######## PLOTTING ########
-
+fig=plt.figure(1)
 #plot MSE correlation with different MSE budget terms in 2D (CRH rank, time)
-plt.figure(1)
 f, axarr = plt.subplots(7,1)
-cf = axarr[0].contourf(rankss, tt, corr_SEFs, 60, cmap=cm.RdBu_r)
-axarr[0].set_title('corr_SEF')
-cf = axarr[1].contourf(rankss, tt, corr_netLWs, 60, cmap=cm.RdBu_r)
-axarr[1].set_title('corr_netLW')
-cf = axarr[2].contourf(rankss, tt, corr_netSWs, 60, cmap=cm.RdBu_r)
-axarr[2].set_title('corr_netSW')
-cf = axarr[3].contourf(rankss, tt, corr_netSWclds, 60, cmap=cm.RdBu_r)
-axarr[3].set_title('corr_netSW due to clouds')
-cf = axarr[4].contourf(rankss, tt, corr_netLWclds, 60, cmap=cm.RdBu_r)
-axarr[4].set_title('corr_netLW due to clouds')
-cf = axarr[5].contourf(rankss, tt, corr_netSWCs, 60, cmap=cm.RdBu_r)
-axarr[5].set_title('corr_netSW due to clear-sky')
-cf = axarr[6].contourf(rankss, tt, corr_netLWCs, 60, cmap=cm.RdBu_r)
-axarr[6].set_title('corr_netLW due to clear-sky')
+vmin = -1e-5
+vmax = 1e-5
+cf = axarr[0].contourf(rankss, tt, corr_SEFs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[0].set_title(r'$\overline{\hat h^{\prime} \mathrm{SEF}^{\prime}}$')
+cf = axarr[1].contourf(rankss, tt, corr_netLWs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[1].set_title(r'$\overline{\hat h^{\prime} \mathrm{netLW}^{\prime}}$')
+cf = axarr[2].contourf(rankss, tt, corr_netSWs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[2].set_title(r'$\overline{\hat h^{\prime} \mathrm{netSW}^{\prime}}$')
+cf = axarr[3].contourf(rankss, tt, corr_netSWclds, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[3].set_title(r'$\overline{\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}}$')
+cf = axarr[4].contourf(rankss, tt, corr_netLWclds, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[4].set_title(r'$\overline{\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}}$')
+cf = axarr[5].contourf(rankss, tt, corr_netSWCs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[5].set_title(r'$\overline{\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}}$')
+cf = axarr[6].contourf(rankss, tt, corr_netLWCs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+axarr[6].set_title(r'$\overline{\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}}$')
+#cf = axarr[7].contourf(rankss, tt, corr_convs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+#axarr[7].set_title(r'$- \overline{\hat h^{\prime} \nabla _H  \cdot{\hat{\vec{u}}h}}$')
 cbar_ax = f.add_axes([0.85, 0.15, 0.05, 0.7])
+f.text(0.47, 0.06, 'CRH rank', ha='center', va='center')
+f.text(0.08, 0.5, 'time (days)', ha='center', va='center', rotation='vertical')
 f.subplots_adjust(right=0.8)
 cb = f.colorbar(cf, cax=cbar_ax)
 #TODO: add superior x,y axis labels
@@ -258,6 +287,16 @@ cb.set_label('correlation')
 plt.savefig(fout + 'CRHsort_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()
 
+plt.figure(2)
+vmin = -2e-4
+vmax = 2e-4
+cf = plt.contourf(rankss, tt, corr_convs, 60, cmap=cm.RdBu_r, vmin=vmin, vmax=vmax)
+plt.title(r'$- \overline{\hat h^{\prime} \nabla _H  \cdot{\hat{\vec{u}}h}}$')
+plt.xlabel('CRH rank')
+plt.ylabel('time (days)')
+plt.colorbar()
+plt.savefig(fout + 'CRHsort_convfeedback_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
+plt.close()
 
 #plot domain mean correlations 
 corr_SEFbar = np.mean(corr_SEFs, axis=1)
@@ -267,20 +306,38 @@ corr_netSWcldbar = np.mean(corr_netSWclds, axis=1)
 corr_netLWcldbar = np.mean(corr_netLWclds, axis=1)
 corr_netSWCbar = np.mean(corr_netSWCs, axis=1)
 corr_netLWCbar = np.mean(corr_netLWCs, axis=1)
+corr_convbar = np.mean(corr_convs, axis=1)
 
-plt.figure(2)
-plt.plot(tt[:,0], corr_SEFbar, label='corr_SEF')
-plt.plot(tt[:,0], corr_netLWbar, label='corr_netLW')
-plt.plot(tt[:,0], corr_netSWbar, label='corr_netSW')
-plt.plot(tt[:,0], corr_netSWcldbar, label='corr_netSWcld')
-plt.plot(tt[:,0], corr_netLWcldbar, label='corr_netLWcld')
-plt.plot(tt[:,0], corr_netLWCbar, label='corr_netLWCbar')
-plt.plot(tt[:,0], corr_netSWCbar, label='corr_netSWCbar')
-plt.xlabel('days')
+plt.figure(3)
+plt.plot(tt[:,0], corr_SEFbar, label=r'$\overline{\hat h^{\prime} \mathrm{SEF}^{\prime}}$')
+plt.plot(tt[:,0], corr_netLWbar, label=r'$\overline{\hat h^{\prime} \mathrm{netLW}^{\prime}}$')
+plt.plot(tt[:,0], corr_netSWbar, label=r'$\overline{\hat h^{\prime} \mathrm{netSW}^{\prime}}$')
+plt.plot(tt[:,0], corr_netSWcldbar, label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}}$')
+plt.plot(tt[:,0], corr_netLWcldbar, label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}}$')
+plt.plot(tt[:,0], corr_netLWCbar, label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}}$')
+plt.plot(tt[:,0], corr_netSWCbar, label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}}$')
+plt.plot(tt[:,0], corr_convbar, 'g--', label=r'$- \overline{\hat h^{\prime} \nabla _H \cdot{\hat{\vec{u}}h}}$')
+plt.title(r'correlation between vertically integrated MSE anomaly, $\hat h^{\prime}$, and budget terms')
+plt.xlabel('time (days)')
 plt.ylabel('correlation')
-plt.legend()
+plt.legend(loc='best')
 plt.savefig(fout + 'mean_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()
+
+#plot the evolution of the variance of FMSE, sorted by CRH
+hfhatprimesortvar = np.multiply(hfhatprimesort, hfhatprimesort)
+plt.figure(4)
+plt.contourf(rankss, tt, hfhatprimesortvar, 60, cmap=cm.RdBu_r)
+plt.colorbar()
+plt.contour(rankss, tt, hfhatprimesort, levels=[0], colors='k')
+plt.ylabel('time (days)')
+plt.xlabel('CRH rank')
+plt.title(r'$\hat h^{\prime 2} (J^2/m^4)$')
+plt.savefig(fout + 'CRHsort_FMSEvar_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
+plt.close()
+
+
+
 
 
 

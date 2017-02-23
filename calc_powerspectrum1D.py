@@ -19,10 +19,9 @@ varis = nc_data.variables
 
 Lx = 12288
 x=varis['x'][:]
+t=varis['time'][:]
 
-times = np.arange(0, 24*200)
-
-Ls_kave = np.zeros(times.shape)
+Ls_kave = np.zeros(t.size)
 
 n = len(x)
 
@@ -32,8 +31,8 @@ varname='PW'
 field = varis[varname][:]
 
 #calculate for different times
-for i,t in enumerate(times):
-    field_t = field[t, :]
+for i in np.arange(t.size):
+    field_t = field[i, :]
     #A contains fourier coefficients
     A = np.fft.fft(field_t, n)
     #phi is the power spectrum
@@ -51,10 +50,10 @@ for i,t in enumerate(times):
 
 
 plt.figure(1)
-plt.plot(times/24., Ls_kave)
+plt.plot(t, Ls_kave)
 plt.xlabel('time (days)')
-plt.ylabel(r'correlation length, $L_{{k}}$ (km)')
-plt.title(r'correlation length of {0}, domain size {1} km'.format(varname, Lx))
+plt.ylabel(r'$L_{{k}}$ (km)')
+plt.title(r'power-weighted average wavenumber of spatial variability of {0}, $L_k$, domain size {1} km'.format(varname, Lx))
 plt.savefig(fout + '{0}corrlength.pdf'.format(varname))
 plt.close()
 

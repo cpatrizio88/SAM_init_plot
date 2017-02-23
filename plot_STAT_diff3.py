@@ -28,7 +28,7 @@ fout = '/Users/cpatrizio/Google Drive/figures/SST302/varydomsize_SAM_aggr_64vert
 nc_in1 = glob.glob(fpath + '*256x256*3000m*250days_302K.nc')[0]
 nc_in2 = glob.glob(fpath + '*512x512*3000m*195days_302K.nc')[0]
 nc_in3 = glob.glob(fpath + '*1024x1024*3000m*200days_302K.nc')[0]
-nc_in4 = glob.glob(fpath + '*2048x2048*3000m*201days_302K.nc')[0]
+#nc_in4 = glob.glob(fpath + '*2048x2048*3000m*201days_302K.nc')[0]
 
 delx1=3000
 domsize1 = 768
@@ -42,30 +42,30 @@ tdouble=90
 nc_data1 = Dataset(nc_in1)
 nc_data2 = Dataset(nc_in2)
 nc_data3 = Dataset(nc_in3)
-nc_data4 = Dataset(nc_in4)
+#nc_data4 = Dataset(nc_in4)
 nc_vars1 = nc_data1.variables
 nc_vars2 = nc_data2.variables
 nc_vars3 = nc_data3.variables
-nc_vars4 = nc_data4.variables
+#nc_vars4 = nc_data4.variables
 
 
 
 z1= nc_vars1['z'][:]
 z2 = nc_vars2['z'][:]
 z3 = nc_vars3['z'][:]
-z4 = nc_vars4['z'][:]
+#z4 = nc_vars4['z'][:]
 
 p1 = nc_vars1['p'][:]
 p2 = nc_vars2['p'][:]
 p3 = nc_vars3['p'][:]
-p4 = nc_vars4['p'][:]
+#p4 = nc_vars4['p'][:]
 
 t1 = nc_vars1['time'][:]
 t2 = nc_vars2['time'][:]
 t3 = nc_vars3['time'][:]
-t4 = nc_vars4['time'][:]
+#t4 = nc_vars4['time'][:]
 
-t4d = -24 #time when doubling occurs
+#t4d = -24 #time when doubling occurs
 
 tt1, zz1 = np.meshgrid(t1, z1)
 tt1, pp1 = np.meshgrid(t1, p1)
@@ -81,8 +81,8 @@ tt2, pp2 = np.meshgrid(t2, p2)
 tt3, zz3 = np.meshgrid(t3, z3)
 tt3, pp3 = np.meshgrid(t3, p3)
 
-tt4, zz4 = np.meshgrid(t4, z4)
-tt4, pp4 = np.meshgrid(t4, p4)
+#tt4, zz4 = np.meshgrid(t4, z4)
+#tt4, pp4 = np.meshgrid(t4, p4)
 
 profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QN', 'QI', 'QV', 'QCL', 'QP', 'QPI', 'QCOND', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR', ]
 timeseries_names = ['PW', 'SHF', 'PREC', 'CAPE', 'LWNT', 'SWNTOA', 'LWDS', 'SWNS', 'CLDLOW', 'CLDHI', 'LWNTOA','LWNS', 'LHF',] 
@@ -143,8 +143,8 @@ for i, profile_name in enumerate(profile_names):
     profile_var3 = nc_vars3[profile_name]
     profile3 = profile_var3[:]
     
-    profile_var4 = nc_vars4[profile_name]
-    profile4 = profile_var4[:]
+    #profile_var4 = nc_vars4[profile_name]
+    #profile4 = profile_var4[:]
     
     tendaveprofile1 = np.sum(profile1[taggr-nave:taggr,:], axis=0)/nave
     #tendaveprofile_prev1 = np.sum(profile1[-2*nave:-nave, :], axis=0)/nave
@@ -154,17 +154,17 @@ for i, profile_name in enumerate(profile_names):
     
     tendaveprofile3 = np.sum(profile3[t3i-nave:t3i,:], axis=0)/nave
     
-    tendaveprofile4 = np.sum(profile3[t4i-nave:t4i,:], axis=0)/nave
+    #tendaveprofile4 = np.sum(profile3[t4i-nave:t4i,:], axis=0)/nave
     
     if profile_name == 'QN':
         zs1 = np.zeros(profile1.shape)
         zs2 = np.zeros(profile2.shape)
         zs3 = np.zeros(profile3.shape)
-        zs4 = np.zeros(profile4.shape)
+        #zs4 = np.zeros(profile4.shape)
         zs1[:,:] = z1[::-1]
         zs2[:,:] = z2[::-1]
         zs3[:,:] = z3[::-1]
-        zs4[:,:] = z4[::-1]
+        #zs4[:,:] = z4[::-1]
         cloudthresh = 0.001 #threshold cumulative condensate 
         profile_cumsum1 = np.cumsum(profile1[:,::-1], axis=1)
         #cloudtop1 = np.max(zs[profile_cumsum1 > cloudthresh], axis=1)
@@ -172,7 +172,7 @@ for i, profile_name in enumerate(profile_names):
         #cloudtop2 = np.max(zs[profile_cumsum2 > cloudthresh], axis=1)
         profile_cumsum3 = np.cumsum(profile3[:,::-1], axis=1)
         #cloudtop3 = np.max(zs[profile_cumsum3 > cloudthresh], axis=1)
-        profile_cumsum4 = np.cumsum(profile4[:,::-1], axis=1)
+        #profile_cumsum4 = np.cumsum(profile4[:,::-1], axis=1)
     
         cloudtop1 = ma.masked_array(zs1, mask=profile_cumsum1 < cloudthresh)
         cloudtop1 = np.max(cloudtop1, axis=1)
@@ -180,8 +180,8 @@ for i, profile_name in enumerate(profile_names):
         cloudtop2 = np.max(cloudtop2, axis=1)
         cloudtop3 = ma.masked_array(zs3, mask=profile_cumsum3 < cloudthresh)
         cloudtop3 = np.max(cloudtop3, axis=1)
-        cloudtop4 = ma.masked_array(zs4, mask=profile_cumsum4 < cloudthresh)
-        cloudtop4 = np.max(cloudtop4, axis=1)
+        #cloudtop4 = ma.masked_array(zs4, mask=profile_cumsum4 < cloudthresh)
+        #cloudtop4 = np.max(cloudtop4, axis=1)
         
         
 #    if profile_name == 'QPI':
@@ -304,7 +304,7 @@ for i, profile_name in enumerate(profile_names):
     #plt.plot(tendaveprofile_prev2, p2, 'r-', alpha=0.2, label='{:2.0f}-day time average at t = {:3.1f} days'.format(nave/24.,t1[-nave]))
     plt.plot(tendaveprofile2, z2/1e3, 'r-', alpha=0.8, linewidth=2.5, label='{:4.0f} km, {:2.0f}-day time average at day {:3.0f}'.format(domsize2, nave/24., t2[t2i]))
     plt.plot(tendaveprofile3, z3/1e3, 'g-', alpha=0.8, linewidth=2.5, label='{:4.0f} km, {:2.0f}-day time average at day {:3.0f}'.format(domsize3, nave/24., t3[t3i]))
-    plt.plot(tendaveprofile4, z4/1e3, 'm-', alpha=0.8, linewidth=2.5, label='{:4.0f} km, {:2.0f}-day time average at day {:3.0f}'.format(domsize4, nave/24., t3[t4i]))
+    #plt.plot(tendaveprofile4, z4/1e3, 'm-', alpha=0.8, linewidth=2.5, label='{:4.0f} km, {:2.0f}-day time average at day {:3.0f}'.format(domsize4, nave/24., t3[t4i]))
     #ax.set_yscale('log')
     #plt.yticks([1000, 500, 250, 100, 50, 20])
     #ax.set_ylim(p2[-1], p2[0])
@@ -346,19 +346,19 @@ for i, ts_name in enumerate(timeseries_names):
     ts2 = ts_var2[:]
     ts_var3 = nc_vars3[ts_name]
     ts3 = ts_var3[:]
-    ts_var4 = nc_vars4[ts_name]
-    ts4 = ts_var4[:]
+    #ts_var4 = nc_vars4[ts_name]
+    #ts4 = ts_var4[:]
     
     if ts_name == 'PREC' or 'LHF':
         w = nstat*5
-        ts4_smooth = moving_average(ts4, w)
+        #ts4_smooth = moving_average(ts4, w)
         ts3_smooth = moving_average(ts3, w)
         ts2_smooth = moving_average(ts2, w)
         ts1_smooth = moving_average(ts1, w)
         plt.plot(t1, ts1, '-k', alpha=0.5, label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, ts2, '-r', alpha=0.5, label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, ts3, '-g', alpha=0.5, label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], ts4[t4d:], '-m', alpha=0.5, label='{:4.0f} km'.format(domsize4))
+        #plt.plot(t4[t4d:], ts4[t4d:], '-m', alpha=0.5, label='{:4.0f} km'.format(domsize4))
         plt.plot(t1[w/2:-w/2+1], ts1_smooth, '-k', linewidth=2)
         plt.plot(t2[w/2:-w/2+1], ts2_smooth, '-r', linewidth=2)
         plt.plot(t3[w/2:-w/2+1], ts3_smooth, '-g', linewidth=2)
@@ -367,7 +367,7 @@ for i, ts_name in enumerate(timeseries_names):
         plt.plot(t1, ts1, '-k', label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, ts2, '-r', label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, ts3, '-g', label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], ts4[t4d:], '-m', label='{:3.0f} km'.format(domsize4))
+        #plt.plot(t4[t4d:], ts4[t4d:], '-m', label='{:3.0f} km'.format(domsize4))
 
     plt.title('{0} ({1})'.format(ts_name, ts_var1.units))
     plt.xlabel('time (days)')
@@ -394,9 +394,9 @@ for i, ts_name in enumerate(timeseries_names):
         LWNTOA_ts3 = ts3
         SWNTOA_ts3 = nc_vars3['SWNTOA'][:]
         QNTOA_ts3 = SWNTOA_ts3 - LWNTOA_ts3
-        LWNTOA_ts4 = ts4
-        SWNTOA_ts4 = nc_vars4['SWNTOA'][:]
-        QNTOA_ts4 = SWNTOA_ts4 - LWNTOA_ts4
+        #LWNTOA_ts4 = ts4
+        #SWNTOA_ts4 = nc_vars4['SWNTOA'][:]
+        #QNTOA_ts4 = SWNTOA_ts4 - LWNTOA_ts4
         plt.title(r'Q$_{net,TOA}$')
         plt.xlim((0, 250))
         plt.xlabel('time (days)')
@@ -405,7 +405,7 @@ for i, ts_name in enumerate(timeseries_names):
         plt.plot(t1, QNTOA_ts1, 'k', alpha=0.8, label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, QNTOA_ts2, 'r', alpha=0.8, label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, QNTOA_ts3, 'g', alpha=0.8, label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], QNTOA_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
+        #plt.plot(t4[t4d:], QNTOA_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
         plt.legend(loc='best')
         plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'QNTOA' + '_idealRCE.pdf')
         plt.close()
@@ -421,13 +421,13 @@ for i, ts_name in enumerate(timeseries_names):
         LWNS_ts3 = ts3
         SWNS_ts3 = nc_vars3['SWNS'][:]
         QNS_ts3 = SWNS_ts3 - LWNS_ts3
-        LWNS_ts4 = ts4
-        SWNS_ts4 = nc_vars4['SWNS'][:]
+        #LWNS_ts4 = ts4
+        #SWNS_ts4 = nc_vars4['SWNS'][:]
         QNS_ts4 = SWNS_ts4 - LWNS_ts4
         QNATMOS_ts1 = QNTOA_ts1 - QNS_ts1
         QNATMOS_ts2 = QNTOA_ts2 - QNS_ts2
         QNATMOS_ts3 = QNTOA_ts3 - QNS_ts3
-        QNATMOS_ts4 = QNTOA_ts4 - QNS_ts4
+        #QNATMOS_ts4 = QNTOA_ts4 - QNS_ts4
         plt.title(r'Q$_{net,atmos}$')
         plt.xlim((0, 250))
         plt.xlabel('time (days)')
@@ -436,7 +436,7 @@ for i, ts_name in enumerate(timeseries_names):
         plt.plot(t1, QNATMOS_ts1, 'k', alpha=0.8, label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, QNATMOS_ts2, 'r', alpha=0.8, label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, QNATMOS_ts3, 'g', alpha=0.8, label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], QNATMOS_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
+        #plt.plot(t4[t4d:], QNATMOS_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
         plt.legend(loc='best')
         plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'QNATMOS' + '_idealRCE.pdf')
         plt.close()
@@ -450,7 +450,7 @@ for i, ts_name in enumerate(timeseries_names):
         NRGBALANCE_ts1 = ts1 + QNATMOS_ts1
         NRGBALANCE_ts2 = ts2 + QNATMOS_ts2
         NRGBALANCE_ts3 = ts3 + QNATMOS_ts3 
-        NRGBALANCE_ts4 = ts4 + QNATMOS_ts4 
+        #NRGBALANCE_ts4 = ts4 + QNATMOS_ts4 
         plt.title(r'LHF + Q$_{net,atmos}$')
         plt.xlim((0, 250))
         plt.xlabel('time (days)')
@@ -459,7 +459,7 @@ for i, ts_name in enumerate(timeseries_names):
         plt.plot(t1, NRGBALANCE_ts1, 'k', alpha=0.8, label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, NRGBALANCE_ts2, 'r', alpha=0.8, label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, NRGBALANCE_ts3, 'g', alpha=0.8, label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], NRGBALANCE_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
+        #plt.plot(t4[t4d:], NRGBALANCE_ts4[t4d:], 'm', alpha=0.8, label='{:4.0f} km'.format(domsize4))
         plt.legend(loc='best')
         plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'LHFQbalance' + '_idealRCE.pdf')
         plt.close()

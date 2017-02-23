@@ -20,32 +20,32 @@ fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
 fpath2D =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 fpath3D = '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 foutdata = '/Users/cpatrizio/data/SST302/'
-fout =  '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_MAPSNEW/'
+#fout =  '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_MAPSNEW/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_MAPSNEW/'
-#fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MAPSNEW/'
+fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MAPSNEW/'
 
 
-nc_STAT = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
-nc_in = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
-nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
+#nc_STAT = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
+#nc_in = glob.glob(fpath2D + '*256x256*3000mls*day230to250*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
  
 #nc_STAT = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
 #nc_in = glob.glob(fpath2D + '*512x512*3000m*day090to140*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day090to130*302K.nc')[0]
 
-#nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*170days*302K.nc')[0]
-#nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day090to130*302K.nc')[0]
-#nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*200days*302K.nc')[0]
+nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day200to210*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day180to190*302K.nc')[0]
 
-domsize=768
+#domsize=768
 #domsize=1536
-#domsize=3072
+domsize=3072
 
 nc_data= Dataset(nc_in)
 nc_dataSTAT = Dataset(nc_STAT)
-nc_data3D = Dataset(nc_in3D)
+#nc_data3D = Dataset(nc_in3D)
 varis2D = nc_data.variables
-varis3D = nc_data3D.variables
+#varis3D = nc_data3D.variables
 varisSTAT = nc_dataSTAT.variables
 times2D = varis2D['time'][:]
 
@@ -54,12 +54,12 @@ times2D = varis2D['time'][:]
 x = varis2D['x'][:]
 y = varis2D['y'][:]
 
-fac=4
+fac=12
 
 nave2D = 24/fac
 nave3D = 4/fac
 
-times = np.arange(0*fac, 40*fac)
+times = np.arange(0*fac, 10*fac)
 
 db=1
 
@@ -68,12 +68,15 @@ xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
 #varname = 'W500'
-
+#vari = varis[varname]
+#field = vari[:]
+#field_tave = blockave3D(field, db)
 
 #
-p = varis3D['p'][:]
-z = varis3D['z'][:]
-#varname = 'W'#
+#p = varis3D['p'][:]
+#z = varis3D['z'][:]
+varname = 'ZC'
+vari = varis2D[varname]
 #plev = 500
 #plevi = np.where(p > plev)[0][-1]
 #wfield_p = varis3D['W'][:,plevi,:,:]
@@ -99,11 +102,8 @@ ny=y.size
 #vals=[Wedge_l*W_crit, 0.01, Wedge_u*W_crit]
 #vals=20
 
-varname = 'SFCSPEED'
-varname = 'BLQVADV'
-varname = 'PSFC'
-
-
+#varname = 'SFCSPEED'
+#varname = 'BLQVADV'
 
 #CAPE COMPUTATION
 #varname = 'CAPE'
@@ -117,17 +117,18 @@ varname = 'PSFC'
 #varname = 'Nsquared'
 if varname == 'CAPE':
       units = r'J/m$^2$'
-if varname == 'N':
+elif varname == 'N':
       units = r's$^{{-2}}$'
-if varname == 'URADIAL':
+elif varname == 'URADIAL':
       U_rfname = glob.glob(foutdata + '{:d}km_URADIAL_*{:3.0f}*'.format(domsize, times3D[-1]))[0] 
       U_r = np.load(U_rfname) 
       units = 'm/s'
-if varname == 'SFCSPEED':
+elif varname == 'SFCSPEED':
       units = 'm/s'
-if varname == 'BLQVADV':
+elif varname == 'BLQVADV':
       units = r'g kg$^{-1}$ s$^{-1}$'
-
+else:
+      units = vari.units.strip()
 
 #delz = np.diff(z)
 
@@ -145,7 +146,7 @@ if varname == 'BLQVADV':
 #vals = np.linspace(-1, 1, 50)
 
 #ZC vals
-#vals = np.arange(0, 15, 0.2)
+vals = np.arange(0, 15, 0.2)
 
 
 #CAPE vals?
@@ -155,15 +156,15 @@ if varname == 'BLQVADV':
 #vals = np.arange(0, 1200, 20)
 
 #W blockave vals
-vals = np.arange(-0.10, 0.5, 0.01)
+#vals = np.arange(-0.10, 0.5, 0.01)
 
 #W vals
-vals = np.arange(-0.5, 8, 0.1)
+#vals = np.arange(-0.5, 8, 0.1)
 
 #USFC vals
-vals= np.arange(0, 9, 0.2)
+#vals= np.arange(0, 9, 0.2)
 
-vals=50
+#vals=50
 
 #vals = np.arange(-0.001, 0.001, .0001)
 
@@ -297,26 +298,10 @@ for i in times:
         #field_tave = np.mean(QVadv, axis=1)
         #field_tave = np.mean(field_tave, axis=0)
         field_tave = np.mean(QVadv, axis=0)
-        
-    elif varname == 'CONV':
-        W = varis3D['W'][t3-nave3D:t3,:,:,:]
-        z = varis3D['z'][:]
-        W_tave = np.mean(W, axis=0)
-        z3D = np.zeros(W_tave.shape)
-        z3D[:,:,:] = z
-        diffz3D = np.diff(z3D, axis=0)
-        field_tave = W_tave[:-1,:,:]/diffz3D
-        field_tave = blockave3D(field_tave, db)
-        
-    elif varname == 'PSFC':
-      vari = varis2D[varname]
-      field = vari[t2-nave2D:t2:,:,:]
-      field_tave = np.mean(field, axis=0)
-      field_bar = np.zeros(field_tave.shape)
-      field_bar[:,:]  = np.mean(np.mean(field, axis=1), axis=1)
-      field_tave = field_tave - field_bar
-      field_tave = blockave2D(field_tave, db)
-      units = vari.units.strip()
+    else:
+        field = varis2D[varname][t2-nave2D:t2,:,:]
+        field_tave = np.mean(field, axis=0)
+        field_tave = blockave2D(field_tave, db)
         
         
         
@@ -332,11 +317,11 @@ for i in times:
     
     #wvals = [W_crit]
     
-    PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
-    PW_tave = np.mean(PW_field, axis=0)
-    PW_tave = blockave2D(PW_tave, db)
+    #PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
+    #PW_tave = np.mean(PW_field, axis=0)
+    #PW_tave = blockave2D(PW_tave, db)
     
-    PWvals = np.arange(0, 88, 8)
+    #PWvals = np.arange(0, 88, 8)
     
     
 
@@ -355,9 +340,9 @@ for i in times:
     #minvar= np.min(field_tave[~np.isnan(field_tave)])
     #maxvar= np.max(field_tave[~np.isnan(field_tave)])
     #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, colors='k', linewidth=0.5, alpha=0.5)
-    cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
+    #cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
     #cs.collections[0].set_label('W$_c$ = {:3.2f} m/s'.format(W_crit))
-    cs.collections[0].set_label('PW')
+    #cs.collections[0].set_label('PW')
     #plt.legend(loc='best')
     #q = plt.quiver(xx[::8, ::8]/1e3, yy[::8, ::8]/1e3, U_tave[::8,::8], V_tave[::8,::8], scale=500, alpha=0.8, zorder=1)
     if varname == 'BLQVADV':
@@ -366,7 +351,7 @@ for i in times:
     else:
         xxplot = xx
         yyplot = yy
-    plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdBu_r, zorder=0)
+    plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0)
     cb = plt.colorbar()
     cb.set_label('({0})'.format(units))
     #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)

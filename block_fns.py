@@ -23,7 +23,7 @@ def blockave2D(field, db):
     """
     Takes a nx x ny field and divides the field into blocks - the new field has
     dimensions nx' x ny' where nx' = nx/db, ny' = ny/db
-    db is half the block width in number of grid cells. 
+    db is the block width in number of grid cells. 
     the field is averaged over the block area (db points) 
     
     in the case of 3D field, averaging is only performed in horizontal direction. 
@@ -61,6 +61,24 @@ def blockave3D(field, db):
     for i in range(nz):
         field_z = field[i,:,:]
         blockfield[i,:,:] = np.average(np.split(np.average(np.split(field_z, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
+    
+    return blockfield
+    
+def blocksum3D(field, db):
+  
+    
+    nz = field.shape[0]
+    nx = field.shape[1]
+    ny = field.shape[2]
+    
+    nxblock = nx // db
+    nyblock = ny // db
+    
+    blockfield = np.zeros((nz, nxblock, nyblock))
+    
+    for i in range(nz):
+        field_z = field[i,:,:]
+        blockfield[i,:,:] = np.sum(np.split(np.sum(np.split(field_z, nxblock, axis=1), axis=-1), nyblock, axis=1), axis=-1)
     
     return blockfield
     
@@ -127,8 +145,8 @@ def blocksort2D(sfield, ofield, db):
     nx = sfield.shape[0]
     ny = sfield.shape[1]
     
-    nxblock = nx // db
-    nyblock = ny // db
+    nxblock = nx / db
+    nyblock = ny / db
     
     #tave_field = np.mean(field[ti-ntave:ti,:,:])
     #tave_field = np.squeeze(tave_field)

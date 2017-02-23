@@ -74,7 +74,7 @@ def radprof3D(field, xx, yy, z, center, nbins):
     
     return (redges, zedges, fieldmeans)
     
-def fracclusterarea(name, varis, nave, t, a=1, W500crit=0.05):
+def fracclusterarea(name, varis, nave, t, a=1, W500crit=0.025):
     """
     computes the fractional area of a convective region
     if name == 'PW', 
@@ -98,18 +98,18 @@ def fracclusterarea(name, varis, nave, t, a=1, W500crit=0.05):
     else:
         nx = tvari.shape[1]
         totpoints = nx
-    
-    if (name == 'MIX'):
-        P = varis['Prec'][:]
-        W500 = varis['W500'][:]
-        Pavefield = np.mean(P[t-nave:t,:,:], axis=0)
-        W500avefield = np.mean(W500[t-nave:t,:,:], axis=0)
-        Pbar = np.mean(Pavefield)
-        Pstd = np.mean(Pavefield)
-        Pcrit = Pbar + a*Pstd
-        convecpoints = np.bitwise_and(Pavefield >= Pcrit, W500avefield >= W500crit)
-        count = len(Pavefield[convecpoints])
-        return count/float(totpoints)
+    #
+    #if (name == 'MIX'):
+    #    P = varis['Prec'][:]
+    #    W500 = varis['W500'][:]
+    #    Pavefield = np.mean(P[t-nave:t,:,:], axis=0)
+    #    W500avefield = np.mean(W500[t-nave:t,:,:], axis=0)
+    #    Pbar = np.mean(Pavefield)
+    #    Pstd = np.mean(Pavefield)
+    #    Pcrit = Pbar + a*Pstd
+    #    convecpoints = np.bitwise_and(Pavefield >= Pcrit, W500avefield >= W500crit)
+    #    count = len(Pavefield[convecpoints])
+    #    return count/float(totpoints)
     
     if (name == 'PrecNEW'):
         P = varis['Prec'][:]
@@ -132,10 +132,12 @@ def fracclusterarea(name, varis, nave, t, a=1, W500crit=0.05):
         Pstd = np.std(avefield)
         count = len(avefield[avefield >= Pbar + a*Pstd])
         return count/float(totpoints)
-    if (name == 'W500'):
-        avew=avefield
-        count = len(avew[avew >= 0])
-        return count/float(totpoints)
+    #NOT WORKING ?
+    #if (name == 'W500'):
+    #    print 'W500crit', W500crit
+    #    print 'totpoints', totpoints
+    #    count = len(avefield[avefield >= W500crit])
+    #    return count/float(totpoints)
         
     
     return ()

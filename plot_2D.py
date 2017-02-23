@@ -37,7 +37,7 @@ xx, zz = np.meshgrid(x, z)
 #xx, pp = np.meshgrid(x, p)
 
 #average fields over some time period
-nave=8*10 #time step of 2D fields is 3 hours (for 2D simulations)
+nave=8*1 #time step of 2D fields is 3 hours (8 steps in a day for 2D simulations)
 delt = np.diff(t2D)[0]*24 #time slice in hours
 
 t=8*55
@@ -52,19 +52,21 @@ for name in field_names:
     plt.figure()
     ax = plt.gca()
     vari = varis2D[name]
-    avefield_t = np.mean(vari[t-nave:t,:,:],axis=0)
+    avefieldt = np.mean(vari[t-nave:t,:,:],axis=0)
+    fieldbar = np.mean(avefieldt)
+    anomavefieldt = avefieldt - fieldbar
     if name == 'U':
-        plt.contour(xx/1e3, zz/1e3, avefield_t, 6, colors='k', alpha=0.3)
-        plt.contourf(xx/1e3, zz/1e3, avefield_t, 30, cmap = cm.RdYlBu_r)
+        plt.contour(xx/1e3, zz/1e3, avefieldt, 6, colors='k', alpha=0.3)
+        plt.contourf(xx/1e3, zz/1e3, avefieldt, 15, cmap = cm.RdYlBu_r)
     #TODO: work on quiver plotting..
-    elif name == 'QRAD':
-        q = plt.quiver(xx[::4, ::64]/1e3, zz[::4, ::64]/1e3, u_tave[::4,::64], w_tave[::4,::64], scale=100, alpha=0.8, headwidth=2, angles='xy', zorder=1)
-        plt.contourf(xx/1e3, zz/1e3, avefield_t, 30, cmap = cm.RdYlBu_r, zorder=0)
-        plt.quiverkey(q, np.min(x)/1e3+30, np.max(t), 10, "10 m/s",coordinates='data',color='k')
-    elif name == 'QN':
-        plt.contourf(xx/1e3, zz/1e3, avefield_t, np.linspace(0, 0.01, 65), cmap = cm.RdYlBu_r)
+    #elif name == 'QRAD':
+    #    q = plt.quiver(xx[::4, ::64]/1e3, zz[::4, ::64]/1e3, u_tave[::4,::64], w_tave[::4,::64], scale=100, alpha=0.8, headwidth=2, angles='xy', zorder=1)
+    #    plt.contourf(xx/1e3, zz/1e3, avefield_t, 30, cmap = cm.RdYlBu_r, zorder=0)
+    #    plt.quiverkey(q, np.min(x)/1e3+30, np.max(t), 10, "10 m/s",coordinates='data',color='k')
+    #elif name == 'QN':
+    #    plt.contourf(xx/1e3, zz/1e3, avefield_t, np.linspace(0, 0.01, 65), cmap = cm.RdYlBu_r)
     else:
-        plt.contourf(xx/1e3, zz/1e3, avefield_t, 30, cmap = cm.RdYlBu_r)
+        plt.contourf(xx/1e3, zz/1e3, avefieldt, 15, cmap = cm.RdYlBu_r)
     plt.xlabel('x (km)')
     plt.ylabel('z (km)')
     #plt.ylabel('p (hPa)')
@@ -73,11 +75,11 @@ for name in field_names:
     #ax.set_ylim(p_trop*1e-2, p[0])
     #ax.invert_yaxis()
     #ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    plt.title(' {:s} [{:s}] temporally-averaged over days {:2.1f} to {:2.1f}'.format(name, vari.units, t2D[t-nave], t2D[t]))
+    plt.title(r'{:s} [{:s}] temporally-averaged over days {:2.0f} to {:2.0f}, $\overbar${:s} = {:3.1f} {:s}'.format(name, vari.units.strip(), t2D[t-nave], t2D[t], name, fieldbar, vari.units.strip()))
     plt.grid()
     cb=plt.colorbar()
     cb.set_label('{:s}'.format(vari.units))
-    plt.savefig(fout + '{:s}xz_day{:2.1f}to{:2.1f}.pdf'.format(name, t2D[t-nave], t2D[t]))
+    plt.savefig(fout + '{:s}_day{:2.1f}to{:2.1f}.pdf'.format(name, t2D[t-nave], t2D[t]))
     plt.close()
     
 #plot mean profiles for moist and dry region (vertical velocity profile, radiative warming rate profile, temperature profile, water vapor profile)
