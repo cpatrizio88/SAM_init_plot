@@ -7,9 +7,6 @@ import matplotlib.ticker
 import matplotlib
 from SAM_init_plot.block_fns import blockave3D, blockave2D
 from thermolib.constants import constants
-from thermolib.thermo import thermo
-from thermolib.findTmoist import findTmoist
-from thermolib.wsat import wsat
 
 c = constants()
 
@@ -29,16 +26,16 @@ fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_6
 
 
 #nc_STAT = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
-#nc_in = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
-#nc_in3D = glob.glob(fpath3D + '*256x256*3000m*130days*302K.nc')[0]
+#nc_in = glob.glob(fpath2D + '*256x256*3000mls*day230to250*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
  
-nc_STAT = glob.glob(fpathSTAT + '*512x512*3000m*180days*302K.nc')[0]
+nc_STAT = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
 nc_in = glob.glob(fpath2D + '*512x512*3000m*day090to140*302K.nc')[0]
 nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day090to130*302K.nc')[0]
 
-#nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*170days*302K.nc')[0]
-#nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day090to130*302K.nc')[0]
-#nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+#nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*200days*302K.nc')[0]
+#nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day200to210*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day180to190*302K.nc')[0]
 
 #domsize=768
 domsize=1536
@@ -47,22 +44,22 @@ domsize=1536
 nc_data= Dataset(nc_in)
 nc_dataSTAT = Dataset(nc_STAT)
 nc_data3D = Dataset(nc_in3D)
-varis = nc_data.variables
+varis2D = nc_data.variables
 varis3D = nc_data3D.variables
 varisSTAT = nc_dataSTAT.variables
-times2D = varis['time'][:]
+times2D = varis2D['time'][:]
 
-#times3D = varis3D['time'][:]
+times3D = varis3D['time'][:]
 
-x = varis['x'][:]
-y = varis['y'][:]
+x = varis2D['x'][:]
+y = varis2D['y'][:]
 
-fac=8
+fac=4
 
 nave2D = 24/fac
-nave3D = 4
+nave3D = 4/fac
 
-times = np.arange(0*fac, 40*fac)
+times = np.arange(10*fac, 30*fac)
 
 db=1
 
@@ -70,26 +67,26 @@ db=1
 xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
-varname = 'W500'
-vari = varis[varname]
+#varname = 'W500'
+#vari = varis[varname]
 #field = vari[:]
 #field_tave = blockave3D(field, db)
 
-
+#
 p = varis3D['p'][:]
 z = varis3D['z'][:]
-varname = 'W'#
-plev = 500
-plevi = np.where(p > plev)[0][-1]
-wfield_p = varis3D['W'][:,plevi,:,:]
-#dbw=16
-block_field = blockave3D(wfield_p, db)
-field = block_field
+#varname = 'LHF'
+#vari = varis2D[varname]
+#plev = 500
+#plevi = np.where(p > plev)[0][-1]
+#wfield_p = varis3D['W'][:,plevi,:,:]
+#block_field = blockave3D(wfield_p, db)
+#field = block_field
 
 
 nx=x.size
 ny=y.size
-nz=z.size
+#nz=z.size
 
 
 #tstep=int(4)
@@ -99,14 +96,17 @@ nz=z.size
 #tstart=nave3D
 
 
-W_crit = 0.5
-Wedge_u = 3
-Wedge_l = 0.5
-vals=[Wedge_l*W_crit, 0.01, Wedge_u*W_crit]
-vals=20
+#W_crit = 0.01
+#Wedge_u = 3
+#Wedge_l = 0.5
+#vals=[Wedge_l*W_crit, 0.01, Wedge_u*W_crit]
+#vals=20
+
+#varname = 'SFCSPEED'
+varname = 'BLCONV'
 
 #CAPE COMPUTATION
-varname = 'CAPE'
+#varname = 'CAPE'
 #TABS = varis3D['TABS'][:,:,:,:]
 #QV = varis3D['QV'][:,:,:,:]
 #QV = QV*1e-3
@@ -116,13 +116,19 @@ varname = 'CAPE'
 #varname ='URADIAL'
 #varname = 'Nsquared'
 if varname == 'CAPE':
-      units = r'J/kg'
+      units = r'J/m$^2$'
 elif varname == 'N':
       units = r's$^{{-2}}$'
 elif varname == 'URADIAL':
       U_rfname = glob.glob(foutdata + '{:d}km_URADIAL_*{:3.0f}*'.format(domsize, times3D[-1]))[0] 
       U_r = np.load(U_rfname) 
       units = 'm/s'
+elif varname == 'SFCSPEED':
+      units = 'm/s'
+elif varname == 'BLQVCONV':
+      units = r'g kg$^{-1}$ s$^{-1}$'
+elif varname == 'BLCONV':
+      units = r's$^{-1}$'
 else:
       units = vari.units.strip()
 
@@ -146,7 +152,31 @@ else:
 
 
 #CAPE vals?
-vals = np.arange(0, 500, 10)
+#vals = np.arange(0, 800, 10)
+
+#Prec vals
+#vals = np.arange(0, 1200, 20)
+
+#W blockave vals
+#vals = np.arange(-0.10, 0.5, 0.01)
+
+#W vals
+#vals = np.arange(-0.5, 8, 0.1)
+
+#USFC vals
+#vals= np.arange(0, 9, 0.2)
+
+#BLCONV block averaged
+#vals = np.arange(-0.0003, 0.0003, 1e-5)
+
+#BLCONV w/o block average
+vals = np.arange(-0.002, 0.002, 1e-4)
+
+#BLQVCONV
+#vals = np.arange(-0.02, 0.02, 0.001)
+
+#vals=50
+
 
 
 
@@ -159,62 +189,31 @@ for i in times:
     t3=i*nave3D
     
     if varname == 'CAPE':
-        
-        #need to calculate z_n and z_f
      
-        p_s = p[0]
-        T_s = varisSTAT['TABS'][t2-nave2D:t2,0]
-        q_sat = wsat(T_s, p_s*1e2)
-        
-        Tenv = varis3D['TABS'][t3-nave3D:t3,:,:,:]
-        
-        QV = varis3D['QV'][t3-nave3D:t3,:,:,:]
+        #CAPE CALCULATION
+        TABS = varis3D['TABS'][i-nave3D:i,:,:,:]
+        QV = varis3D['QV'][i-nave3D:i,:,:,:]
         QV = QV*1e-3
         
-        Tenv_ave = np.mean(np.mean(Tenv, axis=2), axis=1)
+        TABS_tave = np.mean(TABS, axis=0)
+        QV_tave = np.mean(QV, axis=0)
+    
+        TV_tave = TABS_tave*(1+0.61*QV_tave)
+    
+        TENV = nc_STAT['TABS'][i-nave2D:i,:]
+        TENV = np.mean(TENV, axis=0)
+        QBAR = nc_STAT['QV'][i-nave2D:i,:]
+        QBAR = np.mean(QBAR, axis=0)
+        TVENV = TENV*(1+0.61*QBAR)
+        TVENV3D = np.zeros((ny, nx, nz))
+        TVENV3D[:,:,:] = TVENV
+        TVENV3D = TVENV3D.T
         
+        CAPE = c.g*np.sum(np.multiply((TV_tave - TVENV)/TVENV, delz))
         
-        thetae0 = thermo.theta_e(T_s, p_s*1e2, q_sat, 0) #theta_e in moist region 
-        
-        Tadiabat = findTmoist(thetae0, p*1e2)
-        
-        qvadiabat = []
-        
-        for i, plev in enumerate(p*1e2):
-            Tadb = Tadiabat[i]
-            qvadiabat = qvadiabat + [wsat(Tadb, plev)]
-            
-        qvadiabat = np.array(qvadiabat)
-            
-        TVenv = Tenv*(1+0.61*QV)
-        
-        TVenv_ave = np.mean(np.mean(TVenv, axis=2), axis=1)
-            
-        TVadiabat = Tadiabat*(1+0.61*qvadiabat)
-        
-        
-        TVadiabat3D = np.zeros((ny, nx, nz))
-        TVadiabat3D[:,:,:] = TVadiabat
-        TVadiabat3D = TVadiabat3D.T
-        
-        Tpert = TVadiabat3D - TVenv
-        
-        Tpert_ave = np.mean(np.mean(Tpert, axis=2), axis=1)
-        
-        znb_i = np.where(Tpert_ave[::-1] > 0)[0][0]
-        z_nb = z[::-1][znb_i]
-        znb_i = np.where(z > z_nb)[0][0]
-        zL_i = np.where(Tpert_ave > 0)[0][0]
-        
-        zL_i = 0
-        
-        delz = np.diff(z)
-        delz3D = np.zeros((ny, nx, nz-1))
-        delz3D[:,:,:] = delz
-        delz3D = delz3D.T
-                
-        CAPE = c.g*np.sum(np.multiply(Tpert[zL_i:znb_i,:,:]/TVenv[zL_i:znb_i,:,:], delz3D[zL_i:znb_i,:,:]), axis=0)
-    if varname == 'Nsquared':
+        field_tave = CAPE
+     
+    elif varname == 'Nsquared':
         p0=1000
         T = varis3D['TABS'][t3-nave3D:t3,:,:,:]
         T_tave = np.mean(T, axis=0)
@@ -237,21 +236,125 @@ for i in times:
         N_tave_vertave = np.mean(N_tave, axis=0)
         field_tave = blockave2D(N_tave_vertave, db)
         
-    if varname == 'URADIAL':
+    elif varname == 'URADIAL':
         U_r_p = U_r[plevi,:,:]
         field_tave = blockave2D(U_r_p, db)
-
-
+        
+    
+    elif varname == 'SFCSPEED':
+        USFC = varis2D['USFC'][t2-nave2D:t2,:,:]
+        VSFC = varis2D['VSFC'][t2-nave2D:t2,:,:]
+        speed = np.sqrt(np.power(USFC, 2) + np.power(VSFC, 2))
+        field_tave = np.mean(speed, axis=0)
+        field_tave = blockave2D(field_tave, db)
+        
+        #look at different levels here 
+        #p = varis3D['p'][:]
+        #z = varis3D['z'][:]
+        #varname = 'W'#
+        #plev = 500
+        #plevi = np.where(p > plev)[0][-1]
+        #U = varis3D['U'][t3-nave3D:t3,:,:,:]
+        #V = varis3D['V'][t3-nave3D:t3,:,:,:]
+        
+    elif varname == 'BLQVCONV':
+        QV = varis3D['QV'][t3-nave3D:t3,:,:,:]
+        U = varis3D['U'][t3-nave3D:t3,:,:,:]
+        V = varis3D['V'][t3-nave3D:t3,:,:,:]
+        z_BL = 1e3
+        BLi = np.where(z > z_BL)[0][0]
+        QV_BL = np.mean(QV[:,:BLi,:,:], axis=1)
+        U_BL = varis3D['U'][t3-nave3D:t3,:BLi,:,:]
+        V_BL = varis3D['V'][t3-nave3D:t3,:BLi,:,:]
+        U_BL = np.mean(U_BL, axis=1)
+        V_BL = np.mean(V_BL, axis=1)
+        
+        delx = np.diff(x)[0]
+        dely = np.diff(y)[0]
+        
+        #calculate horizontal advection of moisture use forward difference
+        
+        #diffU = U[:,:,1:,:] - U[:,:,:-1,:]
+        #diffU = diffU[:,:,:,:-1]
+        #diffV = V[:,:,:,1:] - V[:,:,:,:-1]
+        #diffV = diffV[:,:,:-1,:]
+        #diffQVx = QV[:,:,1:,:] - QV[:,:,:-1,:]
+        #diffQVx = diffQVx[:,:,:,:-1]
+        #diffQVy = QV[:,:,:,1:] - QV[:,:,:,:-1]
+        #diffQVy =diffQVy[:,:,:-1,:]
+        #QV = QV[:,:,:-1,:-1]
+        
+        diffU = U_BL[:,1:,:] - U_BL[:,:-1,:]
+        diffU = diffU[:,:,:-1]
+        diffV = V_BL[:,:,1:] - V_BL[:,:,:-1]
+        diffV = diffV[:,:-1,:]
+        diffQVx = QV_BL[:,1:,:] - QV_BL[:,:-1,:]
+        diffQVx = diffQVx[:,:,:-1]
+        diffQVy = QV_BL[:,:,1:] - QV_BL[:,:,:-1]
+        diffQVy =diffQVy[:,:-1,:]
+        QV_BL = QV_BL[:,:-1,:-1]
+        
+        
+        U_BL = U_BL[:,:-1,:-1]
+        V_BL = V_BL[:,:-1,:-1]
+        
+        #U = U[:,:,:-1,:-1]
+        #V = V[:,:,:-1,:-1]
+        
+        QVadv = QV_BL*(diffU/delx + diffV/dely) + U_BL*(diffQVx/delx) + V_BL*(diffQVy/dely)
+        #QVadv = U_BL*(diffQVx/delx) + V_BL*(diffQVy/dely)
+        
+        #QVadv = QV*(diffU/delx + diffV/dely) + U*(diffQVx/delx) + V*(diffQVy/dely)
+        #field_tave = np.mean(QVadv, axis=1)
+        #field_tave = np.mean(field_tave, axis=0)
+        field_tave = np.mean(QVadv, axis=0)
+    elif varname == 'BLCONV':
+        field = varis3D['W']
+        W = field[t3-nave3D:t3,:,:,:]
+        W_tave = np.mean(W, axis=0)
+        Wblock = blockave3D(W_tave, db)
+        nxprime = nx / db
+        nyprime = ny / db
+        nt = W.shape[0]
+        nz = z.size
+        #W_tave = np.mean(W, axis=0)
+        z_BL = 1e3
+        BLi = np.where(z > z_BL)[0][0]
+        #diffz3D = np.zeros((nx, ny, nz-1))
+        diffz3D = np.zeros((nxprime, nyprime, nz-1))
+        diffz3D[:,:,:] = np.diff(z)
+        diffz3D = diffz3D.T
+        #diffz4D = np.tile(diffz3D[:,:,:,np.newaxis], nt)
+        #diffz4D = diffz4D.T
+        #diffW = np.diff(W, axis=1)
+        diffW = np.diff(Wblock, axis=0)
+        #conv = diffW/diffz4D
+        conv = diffW/diffz3D
+        #conv_BL = np.mean(conv[:,:BLi,:,:], axis=1)
+        conv_BL = np.mean(conv[:BLi,:,:], axis=0)
+        field_tave = conv_BL
+        #field_tave = np.mean(conv_BL, axis=0)
+        #field_tave = blockave2D(field_tave, db)
+        
+        
+    else:
+        field = varis2D[varname][t2-nave2D:t2,:,:]
+        field_tave = np.mean(field, axis=0)
+        field_tave = blockave2D(field_tave, db)
+        
     #w_tave = np.mean(wfield_p[t3-nave3D:t3,:,:], axis=0)
     #w_tave = blockave2D(w_tave, db)
     
     #wvals = [W_crit]
     
+    PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
+    PW_tave = np.mean(PW_field, axis=0)
+    #PW_tave = blockave2D(PW_tave, db)
     
-
+    PWvals = np.arange(0, 88, 8)
     
     #field_tave = np.mean(field[t2-nave2D:t2,:,:], axis=0)
-    field_tave = blockave2D(field_tave, db)
+    #field_tave = blockave2D(field_tave, db)
     #varname_u = 'U200'
     #U = varis[varname_u][t2-nave2D:t2,:,:]
     #U_tave = np.mean(U, axis=0)
@@ -264,25 +367,46 @@ for i in times:
     #minvar= np.min(field_tave[~np.isnan(field_tave)])
     #maxvar= np.max(field_tave[~np.isnan(field_tave)])
     #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, colors='k', linewidth=0.5, alpha=0.5)
-    #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, w_tave[:,:], wvals, colors=('k',), alpha=0.8, linewidth=1, zorder=1, label = 'w at {:2.0f} hPa'.format(p[plevi]))
+    cs = plt.contour(xx[::, ::]/1e3, yy[::, ::]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
+    #cs.collections[0].set_label('W$_c$ = {:3.2f} m/s'.format(W_crit))
+    #cs.collections[0].set_label('PW')
     #plt.legend(loc='best')
     #q = plt.quiver(xx[::8, ::8]/1e3, yy[::8, ::8]/1e3, U_tave[::8,::8], V_tave[::8,::8], scale=500, alpha=0.8, zorder=1)
-    plt.contourf(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0)
+    if varname == 'BLQVCONV':
+        xxplot = xx[:-1, :-1]
+        yyplot = yy[:-1, :-1]
+    else:
+        xxplot = xx
+        yyplot = yy
+    plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[::db,::db], vals, cmap=cm.RdBu_r, zorder=0)
     cb = plt.colorbar()
-    cb.set_label('({0})'.format(vari.units.strip()))
+    cb.set_label('({0})'.format(units))
     #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)
     plt.xlabel('x (km)')
     plt.ylabel('y (km)')
-    if db == 1:
-        #plt.title('{:s} [{:s}] at day = {:3.2f}, W$_c$ = {:3.2f} m/s'.format(varname, units, times2D[t2], W_crit))
-        plt.title('{:s} [{:s}] at day = {:3.2f}'.format(varname, units, times2D[t2]))
+    if varname == 'SFCSPEED':
+        titlename = r'$(u_{sfc}^2 + v_{sfc}^2)^{\frac{1}{2}}$'
+    elif varname == 'BLQVCONV':
+        #titlename = r'$q_{BL}\frac{du_{BL}}{dx} + q_{BL}\frac{dv_{BL}}{dy}$'
+        #titlename = r'$\nabla _H \cdot{(q_{v.BL}\bf{u_{BL}})}$'
+        titlename = r'$\nabla _H \cdot ({\bf u_{BL}} q_{v,BL})$'
+    elif varname == 'BLCONV':
+        titlename = r'$-(\nabla _H  \cdot {\bf u})_{BL}$'
     else:
-        plt.title('{:s} (m/s) and {:s} [{:s}] at t = {:3.2f} days, block-averaging over ({:2.0f} km)$^2$'.format(varname, units, times2D[i], db*(np.diff(x)[0])/1e3))
+        titlename = varname
+    if db == 1:
+        plt.title('{:s} at day = {:3.2f}'.format(titlename, times2D[t2]))
+        #plt.title('{:s} [{:s}] at day = {:3.2f}, W$_c$ = {:3.2f} m/s'.format(varname, units, times2D[t2], W_crit))
+        #plt.title('mid-level {:s}, day = {:3.2f}'.format(varname, times2D[t2]))
+    else:
+        plt.title('{:s} at day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(titlename, times2D[t2], db*(np.diff(x)[0])/1e3))
+        #plt.title('mid-level {:s}, day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(varname, times2D[t2], db*(np.diff(x)[0])/1e3))
         #plt.title('{:s} [{:s}] at p = {:3.0f} hPa, at t = {:3.2f} days, block-averaging over ({:2.0f} km)$^2$'.format(varname, units, p[plevi], times2D[t2], db*(np.diff(x)[0])/1e3))
     #cb = plt.colorbar(ticks=np.arange(10,90), 10)
+
     #plt.legend(loc='best')
-    #plt.savefig(fout + '{:s}map_day{:2.2f}db{:2.0f}.jpg'.format(varname, times2D[t2], db))
-    plt.savefig(fout + '{:s}map_p{:3.0f}_day{:2.1f}new.jpg'.format(varname, p[plevi], times2D[t2]))
+    plt.savefig(fout + '{:s}map_day{:2.2f}db{:2.0f}.jpg'.format(varname, times2D[t2], db))
+    #plt.savefig(fout + '{:s}map_p{:3.0f}_day{:2.1f}new.jpg'.format(varname, p[plevi], times2D[t2]))
     plt.close()
 
 

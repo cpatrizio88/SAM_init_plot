@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib
 import matplotlib.cm as cm
 from SAM_init_plot.block_fns import blockave2D, blockave3D
+from thermolib.wsat import wsat
 from thermolib.constants import constants
 import matplotlib.colors as colors
 
@@ -12,7 +13,6 @@ matplotlib.rcParams.update({'font.size': 26})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 2})
 matplotlib.rcParams.update({'legend.fontsize': 22})
-
 
 plt.style.use('seaborn-white')
 
@@ -56,11 +56,12 @@ fields = np.array([])
 
 db=16
 
-varname='W'
+varname='QV'
 
 t=-1
 nave=5
 aveperiod = 24*nave
+aveperiod3D = 4*nave
 
 for i, nc_in2D in enumerate(nc_fs):
 #nc_data3D = Dataset(nc_in3D) 
@@ -83,75 +84,89 @@ for i, nc_in2D in enumerate(nc_fs):
     varis3D = nc_data3D.variables
     x = varis2D['x'][:]
     y = varis2D['y'][:]
+    p = varis3D['p'][:]
+    p=p*1e2
     #z = varis3D['z'][:]
     #p = varis3D['p'][:]
     #p = p*1e2
+    W = varis3D['W'][t-aveperiod3D:t,:,:,:]
+    W_tave = np.mean(W, axis=0)
+    if varname == 'RH':
+        QV = varis3D['QV'][t-aveperiod3D:t,:,:,:]
+        QV_tave = np.mean(QV, axis=0)
+        TABS = varis3D['TABS'][t-aveperiod3D:t,:,:,:]
+        TABS_tave = np.mean(TABS, axis=0)
+        RH_tave = np.zeros(QV_tave.shape)
+        
+        for pi, plev in enumerate(p):
+            wsat_tave = 1000*wsat(TABS_tave[pi,:,:], plev) #convert to g/kg
+            RH_tave[pi,:,:] = 100*(QV_tave[pi,:,:]/wsat_tave) #convert to percent
+            field_tave = RH_tave
+    else:
+        var = varis3D[varname]
+        field_tave = np.mean(var[t-aveperiod3D:t,:,:,:],axis=0)
+
+    field_tave = blockave3D(field_tave, db)
+    W_tave = blockave3D(W_tave, db)
+    
+    #Wvertbar = np.mean(np.mean(W, axis=0),axis=0)
+    #Wblock = blockave2D(Wvertbar, db)
+    
+    #W500 = varis2D['W500'][t-aveperiod:t,:,:]
+    #W500_tave = np.mean(W500, axis=0)
+    #W500_block = blockave2D(W500_tave, db)
     
     #nt3D = t3D.size
     #nz = z.size
     nx = x.size
     ny = y.size
-    if varname == 'W':
-        units = varis3D[varname].units.strip()
-        vari = varis3D[varname][t-aveperiod3D:t,:,:,:]
-        vari = np.mean(vari,axis=0)
-    else:
-        units = varis2D[varname].units.strip()
-        vari = varis2D[varname][t-aveperiod:t,:,:]
-        vari = np.mean(vari,axis=0)
-    
-    t3D = varis2D['time'][:]
-    t2D = varis2D['time'][:]
-    nt2D = t2D.size
+    t3D = varis3D['time'][:]
+    #nt3D = t3D.size
     #vari = varis2D[varname]
     #field = np.mean(vari[t-aveperiod:t,:,:], axis=0)
-    field = blockave3D(vari, db)
-    nz = field.shape[0]
+    #field = blockave2D(field, db)
     nxprime = nx / db
     nyprime = ny / db
     
-    field = field.flatten()
-    bins = np.linspace(1,10, 100)
-    bins=np.linspace(-2,2,100)
-    
-    var = np.var(field)
-    print 'variance of {:s} = {:3.5f}'.format(varname, var)
-    print 'max of {:s} = {:3.5f}'.format(varname, np.max(field))
-    
-    freqs, bin_edges = np.histogram(field, bins=bins, weights=np.zeros_like(field) + 1. / (nz*nxprime*nyprime))
+    field_flat = field_tave.flatten()
+    #W500_flat = W500_block.flatten()
+    W_flat = W_tave.flatten()
+    nbins=100
+    #counts, bin_edges = np.histogram(W500_flat, bins=50)
+    #PWsum, bin_edges = np.histogram(W500_flat, bins=50, weights=field)
+    counts, bin_edges = np.histogram(W_flat, bins=nbins)
+    fieldsum, bin_edges = np.histogram(W_flat, bins=nbins, weights=field_flat)
     bin_c = (bin_edges[1:] + bin_edges[:-1])/2
+    fieldbar = fieldsum/counts
         
     plt.figure(1)
-    plt.plot(bin_c, freqs, '.-', color=colors[i], markersize=6, label='{:d} km, day {:3.0f} to {:3.0f} average'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
-    
-    #plt.hist(field, bins=bins, weights=np.zeros_like(field) + 1. / (nz*nxprime*nyprime), histtype='stepfilled', alpha=0.5, color=colors[i], label='{:d} km, day {:3.0f} to {:3.0f} average'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
+    ind = ~np.isnan(fieldbar)
+    plt.plot(bin_c[ind], fieldbar[ind], 'x-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f}'.format(domsizes[i], t3D[t-aveperiod3D], t3D[t]))
+    plt.axvline(0, color='k', alpha=0.3, linewidth=0.5)
+    #plt.plot(bin_c, freqs, 'x-', color=colors[i], label='{:d} km, day {:3.0f} to {:3.0f}'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
 
-if varname == 'W':
-    titlename = r'time-averaged $w$'
-else:
-    titlename = varname
     
 if db == 1:
-    plt.title(r'$w$ frequency distribution'.format(titlename))
+    plt.title('')
 else:
-    plt.title(r'$w$ frequency distribution, block-averaging over ({:2.0f} km)$^2$'.format(db*(np.diff(x)[0])/1e3))
+    plt.title(r'block-averaging over ({:2.0f} km)$^2$'.format(db*(np.diff(x)[0])/1e3))
     
-if (varname == 'ZC') or (varname == 'ZE'):
-   plt.ylim(0,0.03)
-if varname == 'W500':
-   plt.xlim(0, 1)
-   plt.ylim(0, 0.1)
+#if (varname == 'ZC') or (varname == 'ZE'):
+#   plt.ylim(0,0.03)
+#if varname == 'W500':
+#   plt.xlim(0, 1)
+#   plt.ylim(0, 0.1)
 
-plt.xlabel('{:s} ({:s})'.format(titlename, units))
-plt.ylabel('frequency')
-plt.yscale('log', nonposy='clip')
-plt.xlim((-0.1,0.5))
-#plt.ylim((0,0.2))
-#plt.xlim((0,0.02))
-plt.ylim((1e-4, 1))
-plt.axvline(0, color='k', alpha=0.5, linewidth=0.5)
-plt.legend()
-plt.savefig(fout + '{:s}freq_db{:d}.pdf'.format(varname, db))
+if varname == 'RH':
+    units = '%'
+else:
+    units = var.units.strip()
+
+plt.xlabel('time-averaged W (m/s)')
+plt.ylabel('{:s} ({:s})'.format(varname, units))
+#plt.ylabel('frequency')
+plt.legend(loc='best')
+plt.savefig(fout + '{:s}vsW_db{:d}.pdf'.format(varname, db))
 plt.close()
 
 

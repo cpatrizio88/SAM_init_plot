@@ -1,14 +1,25 @@
+import matplotlib as mpl
+mpl.use('Agg')
+from netCDF4 import Dataset
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib
 import matplotlib.cm as cm
-from thermolib.wsat import wsat
-from thermolib.constants import constants
-import SAM_init_plot.misc_fns 
-from SAM_init_plot.block_fns import blockave3D
-from SAM_init_plot.misc_fns import fracclusterarea
+#import SAM_init_plot.block_fns
+#import SAM_init_plot.misc_fns
+#import thermolib
+#from SAM_init_plot.misc_fns import radprof3D, radprof
+from misc_fns import fracclusterarea
+#from SAM_init_plot.block_fns import blockave2D, blockave3D, blockxysort2D
+from block_fns import blockave3D
+#from thermolib.constants import constants
+from constants import constants
+from wsat import wsat
+#from thermolib.wsat import wsat
 
 matplotlib.rcParams.update({'font.size': 28})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
@@ -19,21 +30,25 @@ matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
+fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
 
-nc_in1 = glob.glob(fpath + '*256x256*3000m*day230to250*302K.nc')[0]
-nc_in2 = glob.glob(fpath + '*512x512*3000m*day180to195*302K.nc')[0]
-nc_in3 = glob.glob(fpath + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_in1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
+nc_in2 = glob.glob(fpath3D + '*512x512*3000m*day180to195*302K.nc')[0]
+nc_in3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_in4 = glob.glob(fpath3D + '*2048*.nc')[0]
 
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_MOISTDRYPROFS/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to130_64vert_ubarzero_MOISTDRYPROFS/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MOISTDRYPROFS/'
 fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_MOISTPROFS/'
 
+fout = '/glade/scratch/patrizio/MOISTPROF_FIGS/'
+
 c = constants()
 
-domsizes = [768, 1536, 3072]
-ncs = [nc_in1, nc_in2, nc_in3]
-colors = ['k', 'r', 'g']
+domsizes = [768, 1536, 3072, 6144]
+ncs = [nc_in1, nc_in2, nc_in3, nc_in4]
+colors = ['k', 'r', 'g', 'm']
 
 #domsize=768
 #domsize=1536
@@ -57,8 +72,10 @@ for k, nc_in in enumerate(ncs):
         nave=8
     elif domsize == 1536:
         nave=8
+    elif domsize == 3072:
+        nave = 8
     else:
-        nave=8
+        nave=5
         
     aveperiod2D = nave*ntave2D
     aveperiod3D = nave*ntave3D
@@ -98,8 +115,8 @@ for k, nc_in in enumerate(ncs):
     divs = np.zeros(z.size-1)
     Aup = np.zeros(z.size)
     
-    db=16
-    Wcrit=0.01
+    db=1
+    Wcrit=0.3
     
     #block averaging
     Wtave = blockave3D(Wtave, db)
@@ -133,7 +150,7 @@ for k, nc_in in enumerate(ncs):
         #radial wind component (normal to convective region, assuming region is ciruclar)
         v_ns[i] = divs[i]/(2*np.pi*l_ms[i]*rhoz_tave[i])
         
-    sigmabar = np.mean(sigma[np.bitwise_and(z > 1000, z < 14000)])
+    sigmabar = np.mean(sigma)
     divbar = np.mean(np.abs(divs))
     l_mbar = np.mean(l_ms/1e3)
     v_nbar = np.mean(v_ns[np.isfinite(v_ns)])
@@ -165,7 +182,7 @@ for k, nc_in in enumerate(ncs):
     tt1.set_position([0.5, 1.04])
     #ax.set_xlabel(r'$\sigma$')
     plt.legend(loc='best')
-    plt.ylabel('z (km)', fontsize=32)
+    plt.ylabel('z (km)', fontsize=34)
     #axarr[0,].plot(sigma, z/1e3)
     #axarr[0,].set_xlabel('sigma')
     #axarr[0,].set_ylabel('z (km)')
@@ -194,9 +211,9 @@ for k, nc_in in enumerate(ncs):
     plt.gcf().subplots_adjust(bottom=0.15)
     #trunc = (n-1)/2
     if db == 1:
-        tt1=plt.title(r'Horizontal Mass Flux out of Convective region')
+        tt1=plt.title(r'Horizontal Mass Flux out of Convective region, $w_{{c}}$ = {:2.1f} m/s'.format(Wcrit))
     else:
-        tt1=plt.title(r'Horizontal Mass Flux out of Mesoscale Convective Region')
+        tt1=plt.title(r'Horizontal Mass Flux out of Mesoscale Convective Region, $w_{{c}}$ = {:2.2f} m/s'.format(Wcrit))
     tt1.set_position([0.5, 1.04])  
     plt.plot(divs/divbar, z[:-1]/1e3, '-x', color=colors[k],  label='{:d} km, averaged over day {:2.0f} to {:2.0f}'.format(domsize, times[0], times[-1]))
     plt.xlabel(r'$\frac{(\nabla \cdot \rho{\bf u})_{conv}}{\overline{|\nabla \cdot \rho{\bf u}|}_{conv}}$', fontsize=40)
@@ -224,13 +241,13 @@ for k, nc_in in enumerate(ncs):
     
     trunc = (n-1)/2
     if db == 1:
-        tt1=plt.title(r'Horizontal Mass Flux out of Convective Region')
+        tt1=plt.title(r'Horizontal Mass Flux out of Convective Region, $w_{{c}}$ = {:2.1f} m/s'.format(Wcrit))
     else:
-        tt1=plt.title(r'Horizontal Mass Flux out of Mesoscale Convective Region')
+        tt1=plt.title(r'Horizontal Mass Flux out of Mesoscale Convective Region, $w_{{c}}$ = {:2.2f} m/s'.format(Wcrit))
     tt1.set_position([0.5, 1.04])
     plt.plot(divsmooth, z[trunc:-(trunc+1)]/1e3, '-x', color=colors[k], label='{:d} km, averaged over day {:2.0f} to {:2.0f}'.format(domsize, times[0], times[-1]))
     plt.xlabel(r'$\frac{(\nabla \cdot \rho{\bf u})_{conv}}{\overline{|\nabla \cdot \rho{\bf u}|}_{conv}}$', fontsize=40)
-    plt.ylabel('z (km)', fontsize=32)
+    plt.ylabel('z (km)')
     plt.tight_layout()
     plt.legend(loc='best')
     ax.set_ylim(0, 20)

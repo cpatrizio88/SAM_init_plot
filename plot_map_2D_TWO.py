@@ -12,9 +12,9 @@ from thermolib.constants import constants
 c = constants()
 
 matplotlib.rcParams.update({'font.size': 26})
-matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'figure.figsize': (22, 12)})
 matplotlib.rcParams.update({'lines.linewidth': 2})
-matplotlib.rcParams.update({'legend.fontsize': 22})
+matplotlib.rcParams.update({'legend.fontsize': 22}) 
 
 plt.style.use('seaborn-white')
 fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
@@ -23,7 +23,7 @@ fpath3D = '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 foutdata = '/Users/cpatrizio/data/SST302/'
 #fout =  '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_MAPSNEW/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_MAPSNEW/'
-fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MAPSNEW/'
+fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_DOUBLEMAPS/'
 
 
 #nc_STAT = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
@@ -71,7 +71,7 @@ db=1
 xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
-varname = 'Prec'
+varname = 'PSFC'
 vari = varis2D[varname]
 #field = vari[:]
 #field_tave = blockave3D(field, db)
@@ -166,7 +166,7 @@ else:
 #vals = np.arange(0, 800, 10)
 
 #Prec vals
-vals = np.arange(0, 1000, 10)
+#vals = np.arange(0, 1000, 10)
 
 #W blockave vals
 #vals = np.arange(-0.10, 0.5, 0.01)
@@ -189,6 +189,9 @@ vals = np.arange(0, 1000, 10)
 #vals = np.arange(-0.001, 0.001, .0001)
 
 #alpha_t = np.zeros(times.size)
+
+#PSFC VALS
+vals=np.arange(-2,2,0.01)
 
 
 
@@ -344,30 +347,29 @@ for i in times:
         indx = np.isfinite(field_tave)
         alpha_t[i] = np.mean(field_tave[indx])
         #field_tave = blockave2D(field_tave, db)
+
     else:
         field = varis2D[varname][t2-nave2D:t2,:,:]
         field_tave = np.mean(field, axis=0)
         field_tave = blockave2D(field_tave, db)
         
+    if varname == 'PSFC':
+        field_tave = field_tave - np.mean(field_tave)
         
-        
-        
-        
-
-        
-        
-
-
     #w_tave = np.mean(wfield_p[t3-nave3D:t3,:,:], axis=0)
     #w_tave = blockave2D(w_tave, db)
     
     #wvals = [W_crit]
     
-    #PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
-    #PW_tave = np.mean(PW_field, axis=0)
-    #PW_tave = blockave2D(PW_tave, db)
-    #
-    #PWvals = np.arange(0, 88, 8)
+    PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
+    PW_tave = np.mean(PW_field, axis=0)
+    PW_tave = blockave2D(PW_tave, db)
+    
+    PWvals = np.arange(0, 88, 2)
+    
+    #field = varis2D[varname][t2-nave2D:t2,:,:]
+    #field_tave = np.mean(field, axis=0)
+    #field_tave = blockave2D(field_tave, db)
     
     #field_tave = np.mean(field[t2-nave2D:t2,:,:], axis=0)
     #field_tave = blockave2D(field_tave, db)
@@ -379,7 +381,7 @@ for i in times:
 
     print 'day', times2D[t2]
     #print 'day', times3D[i]
-    plt.figure()
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
     #minvar= np.min(field_tave[~np.isnan(field_tave)])
     #maxvar= np.max(field_tave[~np.isnan(field_tave)])
     #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, colors='k', linewidth=0.5, alpha=0.5)
@@ -395,17 +397,24 @@ for i in times:
         xxplot = xx
         yyplot = yy
     if varname == 'Prec':
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='max')
+         cf= ax1.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='max')
+         #ax1.grid(True, alpha=0.4, color='k')
+    elif varname == 'PSFC':
+         cf= ax1.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdBu_r, zorder=0, extend='max')
     else:
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='both')
-    cb = plt.colorbar(format='%.0f')
+         cf = ax1.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='both')
+         #ax1.grid(True, alpha=0.4, color='k')
+    if varname == 'PSFC':
+        cb=f.colorbar(cf, format='%2.1f', ax=ax1, orientation='horizontal')
+    else:
+        cb=f.colorbar(cf, format='%.0f', ax=ax1, orientation='horizontal')
     #plt.colorbar(format='%.2f')
     #plt.colorbar()
     cb.set_label('({0})'.format(units))
     #cb.set_format(format='%.2f'))
     #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)
-    plt.xlabel('x (km)')
-    plt.ylabel('y (km)')
+    ax1.set_xlabel('x (km)')
+    ax1.set_ylabel('y (km)')
     if varname == 'SFCSPEED':
         titlename = r'$(u_{sfc}^2 + v_{sfc}^2)^{\frac{1}{2}}$'
     elif varname == 'BLQVADV':
@@ -420,20 +429,46 @@ for i in times:
         titlename = r'$\alpha$'
     elif varname == 'Prec':
         titlename = 'P'
+    elif varname == 'PSFC':
+        titlename = r'$p_{sfc}$ - $\overline{p_{sfc}}$'
     else:
         titlename = varname
     if db == 1:
-        plt.title('{:s} at day = {:3.2f}'.format(titlename, times2D[t2]))
+        ax1.set_title('{:s} at day = {:3.2f}'.format(titlename, times2D[t2]))
         #plt.title('{:s} [{:s}] at day = {:3.2f}, W$_c$ = {:3.2f} m/s'.format(varname, units, times2D[t2], W_crit))
         #plt.title('mid-level {:s}, day = {:3.2f}'.format(varname, times2D[t2]))
     else:
-        plt.title('{:s} at day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(titlename, times2D[t2], db*(np.diff(x)[0])/1e3))
+        ax1.set_title('{:s} at day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(titlename, times2D[t2], db*(np.diff(x)[0])/1e3))
         #plt.title('mid-level {:s}, day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(varname, times2D[t2], db*(np.diff(x)[0])/1e3))
         #plt.title('{:s} [{:s}] at p = {:3.0f} hPa, at t = {:3.2f} days, block-averaging over ({:2.0f} km)$^2$'.format(varname, units, p[plevi], times2D[t2], db*(np.diff(x)[0])/1e3))
     #cb = plt.colorbar(ticks=np.arange(10,90), 10)
 
+    cf = ax2.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, PW_tave[:,:], PWvals, cmap=cm.RdYlBu_r, zorder=0, extend='max')
+
+    cb=f.colorbar(cf, format='%.0f', ax=ax2, orientation='horizontal')
+
+    #plt.colorbar(format='%.2f')
+    #plt.colorbar()
+    cb.set_label('(mm)')
+    #cb.set_format(format='%.2f'))
+    #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)
+    #plt.xlabel('x (km)')
+    #ax2.set_ylabel('y (km)')
+    ax2.set_xlabel('x (km)')
+    titlename = 'PW'
+    if db == 1:
+        ax2.set_title('{:s} at day = {:3.2f}'.format(titlename, times2D[t2]))
+        #ax2.grid(True, alpha=0.4, color='k')
+        #plt.title('{:s} [{:s}] at day = {:3.2f}, W$_c$ = {:3.2f} m/s'.format(varname, units, times2D[t2], W_crit))
+        #plt.title('mid-level {:s}, day = {:3.2f}'.format(varname, times2D[t2]))
+    else:
+        ax2.set_title('{:s} at day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(titlename, times2D[t2], db*(np.diff(x)[0])/1e3))
+        #ax2.grid(True, alpha=0.4, color='k')
+        #plt.title('mid-level {:s}, day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(varname, times2D[t2], db*(np.diff(x)[0])/1e3))
+        #plt.title('{:s} [{:s}] at p = {:3.0f} hPa, at t = {:3.2f} days, block-averaging over ({:2.0f} km)$^2$'.format(varname, units, p[plevi], times2D[t2], db*(np.diff(x)[0])/1e3))
+
     #plt.legend(loc='best')
-    plt.savefig(fout + '{:s}map_day{:2.2f}db{:2.0f}.jpg'.format(varname, times2D[t2], db))
+    plt.savefig(fout + 'PW{:s}map_day{:2.2f}db{:2.0f}.jpg'.format(varname, times2D[t2], db))
     #plt.savefig(fout + '{:s}map_p{:3.0f}_day{:2.1f}new.jpg'.format(varname, p[plevi], times2D[t2]))
     plt.close()
     

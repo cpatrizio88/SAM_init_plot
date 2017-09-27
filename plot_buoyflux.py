@@ -15,17 +15,18 @@ fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 
 fout = '/Users/cpatrizio/data/SST302/'
 
-matplotlib.rcParams.update({'font.size': 14})
+matplotlib.rcParams.update({'font.size': 24})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'legend.fontsize': 22})
 matplotlib.rcParams.update({'lines.linewidth': 3})
-matplotlib.rcParams.update({'legend.fontsize': 16})
 
-nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day120to140*302K.nc')[0]
+
+nc_in3D = glob.glob(fpath3D + '*512x512*day140to155*302K.nc')[0]
 
 nc_data3D = Dataset(nc_in3D)
 varis3D = nc_data3D.variables
 
-t3D = varis3D['time'][:]
+#t3D = varis3D['time'][:]
 
 z = varis3D['z'][:]
 
@@ -35,7 +36,7 @@ domsizes = [768, 1536, 3072]
 
 #start and end time in days (corresponding to first file, and last file for given domain size)
 tinits = [0, 90, 110]
-tends = [250, 140, 140]
+tends = [250, 195, 150]
 colors = ['k', 'r', 'g'] 
 
 tdouble = 90
@@ -73,13 +74,13 @@ for i, d in enumerate(domsizes):
     plt.plot(times[mask], buoyfluxbar[mask], 'x-', color=colors[i], label='{:d} km'.format(d))
     plt.xlabel('time (days)')
     plt.ylabel('buoyancy flux (W/m$^2$)')
-    plt.title('evolution of  domain-mean buoyancy flux')
+    plt.title('domain-mean buoyancy flux')
     gc.collect()
     #buoyfluxbar = np.append(buoyfluxbar, buoyfluxbar_int)
 
 plt.axvline(tdouble, color='b', alpha=0.5)  
 plt.legend(loc='best')
-plt.savefig(foutSTATvary + 'buoyfluxQPday0to250.png')
+plt.savefig(foutSTATvary + 'buoyfluxNEWday0to250.png')
 plt.close()
 
 

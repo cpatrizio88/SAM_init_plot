@@ -17,6 +17,7 @@ def expfunc(x, a, b, c):
 
 matplotlib.rcParams.update({'font.size': 14})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
@@ -76,6 +77,8 @@ varnames = ['PW', 'USFC', 'LHF', 'CWP', 'Prec', 'W500', 'TB', 'ZC']
 #varnames = ['W500']
 #varnames = ['USFC', 'W500', 'Prec', 'LHF']
 #varnames = ['PW', 'USFC', 'LHF']
+
+varnames = ['PW']
 
 
 

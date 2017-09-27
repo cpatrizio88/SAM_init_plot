@@ -27,13 +27,13 @@ plt.style.use('seaborn-white')
 fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 fout = '/Users/cpatrizio/data/SST302/'
-foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_STAT/'
+#foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_STAT/'
 #foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggr130days_64vert_ubarzero_STAT/'
-#foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggr150days_64vert_ubarzero_STAT/'
+foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggr150days_64vert_ubarzero_STAT/'
 
 #nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
-#nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day180to195*302K.nc')[0]
-nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day170to180*302K.nc')[0]
+#nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day140to150*302K.nc')[0]
 
 #domsize=768
 #domsize=1536
@@ -181,14 +181,14 @@ dwdt = dwdt[trunc:,:,:,:]
 
 times = np.arange(int(t3D[0]), int(t3D[-1]))
 
-dwdtnew = np.zeros((times.size, nz-1, nx, ny))
-#buoyfluxnew = np.zeros((times.size, nz-1, nx, ny))
+#dwdtnew = np.zeros((times.size, nz-1, nx, ny))
+buoyfluxnew = np.zeros((times.size, nz-1, nx, ny))
 
 print 'calculating daily averages'
 for ti, t in enumerate(times):
     print 'day', t
-    dwdtnew[ti,:,:,:] = np.mean(dwdt[ti*ntave3D:(ti+1)*ntave3D,:,:,:], axis=0)
-    #buoyfluxnew[ti,:,:,:] = np.mean(buoyflux[ti*ntave3D:(ti+1)*ntave3D,:,:,:], axis=0)
+    #dwdtnew[ti,:,:,:] = np.mean(dwdt[ti*ntave3D:(ti+1)*ntave3D,:,:,:], axis=0)
+    buoyfluxnew[ti,:,:,:] = np.mean(buoyflux[ti*ntave3D:(ti+1)*ntave3D,:,:,:], axis=0)
     
 #. It's as simple as f.create_dataset('name', data=x) where x is your numpy array and f is the open hdf file. 
 # Doing the same thing in pytables is possible, but considerably more difficult. –
@@ -202,11 +202,11 @@ for ti, t in enumerate(times):
 
 print 'saving buoyancy file'
 
-np.save(fout + '{:d}km_buoy_day{:3.0f}to{:3.0f}'.format(domsize, t3D[0], t3D[-1]), dwdtnew)
+#np.save(fout + '{:d}km_buoy_day{:3.0f}to{:3.0f}'.format(domsize, t3D[0], t3D[-1]), dwdtnew)
 
 #print 'saving buoyancy flux file'
 #np.save(fout + '{:d}km_dwdt_day{:3.0f}to{:3.0f}QP'.format(domsize, t3D[0], t3D[-1]), dwdtnew)
-#np.save(fout + '{:d}km_buoyflux_day{:3.0f}to{:3.0f}'.format(domsize, t3D[0], t3D[-1]), buoyflux)
+np.save(fout + '{:d}km_buoyflux_day{:3.0f}to{:3.0f}'.format(domsize, t3D[0], t3D[-1]), buoyfluxnew)
 
 delz = np.diff(z)
 delz2D = np.zeros((ntimes, nz-1))
@@ -234,13 +234,13 @@ times = times[trunc:]
 #plt.savefig(foutSTAT + 'buoyflux_day{:3.0f}to{:3.0f}QP.pdf'.format(t3D[0], t3D[-1]))
 #plt.close()
 
-plt.figure(2)
-plt.plot(times, buoybar, 'kx-')
-plt.ylabel(r'column-integrated buoyancy  (Pa)')
-plt.xlabel('t (days)')
-plt.title(r'evolution of domain-mean buoyancy, domain size ({:d} km)$^2$'.format(domsize)) 
-plt.savefig(foutSTAT + 'buoy_day{:3.0f}to{:3.0f}.pdf'.format(t3D[0], t3D[-1]))
-plt.close()
+#plt.figure(2)
+#plt.plot(times, buoybar, 'kx-')
+#plt.ylabel(r'column-integrated buoyancy  (Pa)')
+#plt.xlabel('t (days)')
+#plt.title(r'evolution of domain-mean buoyancy, domain size ({:d} km)$^2$'.format(domsize)) 
+#plt.savefig(foutSTAT + 'buoy_day{:3.0f}to{:3.0f}.pdf'.format(t3D[0], t3D[-1]))
+#plt.close()
 
 
 

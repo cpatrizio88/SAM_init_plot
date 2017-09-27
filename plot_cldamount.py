@@ -64,7 +64,7 @@ for i, domsize in enumerate(domsizes):
     elif domsize == 1536:
         nave=10
     else:
-        nave=10
+        nave=5
         
     aveperiod2D = nave*ntave2D
     aveperiod3D = nave*ntave3D
@@ -127,7 +127,7 @@ for i, domsize in enumerate(domsizes):
     plt.xlabel('cloud fraction')
     plt.ylabel('z (km)')
     plt.ylim((0, z_t/1e3))
-    plt.title('fraction of domain covered by cloud (QN > 0)')
+    plt.title(r'cloud fraction ($q_n$ > 0)')
     plt.savefig(fout + 'cldfrac_day250{:d}daynew.pdf'.format(nave))  
             
 

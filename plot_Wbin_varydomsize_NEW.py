@@ -13,7 +13,6 @@ matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 2})
 matplotlib.rcParams.update({'legend.fontsize': 22})
 
-
 plt.style.use('seaborn-white')
 
 fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
@@ -56,11 +55,12 @@ fields = np.array([])
 
 db=16
 
-varname='W'
+varname='PW'
 
 t=-1
 nave=5
 aveperiod = 24*nave
+aveperiod3D = 4*nave
 
 for i, nc_in2D in enumerate(nc_fs):
 #nc_data3D = Dataset(nc_in3D) 
@@ -69,11 +69,11 @@ for i, nc_in2D in enumerate(nc_fs):
     print 'loading', nc_in3D
     domsize = domsizes[i]
     if domsize == 768:
-        nave=8
+        nave=10
     elif domsize == 1536:
-        nave=8
+        nave=5
     else:
-        nave=8
+        nave=3
     aveperiod = 24*nave
     aveperiod3D = 4*nave
     nc_data2D = Dataset(nc_in2D)
@@ -86,72 +86,61 @@ for i, nc_in2D in enumerate(nc_fs):
     #z = varis3D['z'][:]
     #p = varis3D['p'][:]
     #p = p*1e2
+    W = varis3D['W'][t-aveperiod3D:t,:,:,:]
+    
+    Wvertbar = np.mean(np.mean(W, axis=0),axis=0)
+    Wblock = blockave2D(Wvertbar, db)
+    
+    #W500 = varis2D['W500'][t-aveperiod:t,:,:]
+    #W500_tave = np.mean(W500, axis=0)
+    #W500_block = blockave2D(W500_tave, db)
     
     #nt3D = t3D.size
     #nz = z.size
     nx = x.size
     ny = y.size
-    if varname == 'W':
-        units = varis3D[varname].units.strip()
-        vari = varis3D[varname][t-aveperiod3D:t,:,:,:]
-        vari = np.mean(vari,axis=0)
-    else:
-        units = varis2D[varname].units.strip()
-        vari = varis2D[varname][t-aveperiod:t,:,:]
-        vari = np.mean(vari,axis=0)
-    
-    t3D = varis2D['time'][:]
-    t2D = varis2D['time'][:]
-    nt2D = t2D.size
-    #vari = varis2D[varname]
-    #field = np.mean(vari[t-aveperiod:t,:,:], axis=0)
-    field = blockave3D(vari, db)
-    nz = field.shape[0]
+    t3D = varis3D['time'][:]
+    nt3D = t3D.size
+    vari = varis2D[varname]
+    field = np.mean(vari[t-aveperiod:t,:,:], axis=0)
+    field = blockave2D(field, db)
     nxprime = nx / db
     nyprime = ny / db
     
     field = field.flatten()
-    bins = np.linspace(1,10, 100)
-    bins=np.linspace(-2,2,100)
-    
-    var = np.var(field)
-    print 'variance of {:s} = {:3.5f}'.format(varname, var)
-    print 'max of {:s} = {:3.5f}'.format(varname, np.max(field))
-    
-    freqs, bin_edges = np.histogram(field, bins=bins, weights=np.zeros_like(field) + 1. / (nz*nxprime*nyprime))
+    #W500_flat = W500_block.flatten()
+    W_flat = Wblock.flatten()
+    nbins=100
+    #counts, bin_edges = np.histogram(W500_flat, bins=50)
+    #PWsum, bin_edges = np.histogram(W500_flat, bins=50, weights=field)
+    counts, bin_edges = np.histogram(W_flat, bins=nbins)
+    PWsum, bin_edges = np.histogram(W_flat, bins=nbins, weights=field)
     bin_c = (bin_edges[1:] + bin_edges[:-1])/2
+    PWbar = PWsum/counts
         
     plt.figure(1)
-    plt.plot(bin_c, freqs, '.-', color=colors[i], markersize=6, label='{:d} km, day {:3.0f} to {:3.0f} average'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
-    
-    #plt.hist(field, bins=bins, weights=np.zeros_like(field) + 1. / (nz*nxprime*nyprime), histtype='stepfilled', alpha=0.5, color=colors[i], label='{:d} km, day {:3.0f} to {:3.0f} average'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
+    ind = ~np.isnan(PWbar)
+    plt.plot(bin_c[ind], PWbar[ind], 'x-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f}'.format(domsizes[i], t3D[t-aveperiod3D], t3D[t]))
+    plt.axvline(0, color='k', alpha=0.3, linewidth=0.5)
+    #plt.plot(bin_c, freqs, 'x-', color=colors[i], label='{:d} km, day {:3.0f} to {:3.0f}'.format(domsizes[i], t2D[t-aveperiod], t2D[t]))
 
-if varname == 'W':
-    titlename = r'time-averaged $w$'
-else:
-    titlename = varname
     
 if db == 1:
-    plt.title(r'$w$ frequency distribution'.format(titlename))
+    plt.title('')
 else:
-    plt.title(r'$w$ frequency distribution, block-averaging over ({:2.0f} km)$^2$'.format(db*(np.diff(x)[0])/1e3))
+    plt.title(r'block-averaging over ({:2.0f} km)$^2$'.format(db*(np.diff(x)[0])/1e3))
     
-if (varname == 'ZC') or (varname == 'ZE'):
-   plt.ylim(0,0.03)
-if varname == 'W500':
-   plt.xlim(0, 1)
-   plt.ylim(0, 0.1)
+#if (varname == 'ZC') or (varname == 'ZE'):
+#   plt.ylim(0,0.03)
+#if varname == 'W500':
+#   plt.xlim(0, 1)
+#   plt.ylim(0, 0.1)
 
-plt.xlabel('{:s} ({:s})'.format(titlename, units))
-plt.ylabel('frequency')
-plt.yscale('log', nonposy='clip')
-plt.xlim((-0.1,0.5))
-#plt.ylim((0,0.2))
-#plt.xlim((0,0.02))
-plt.ylim((1e-4, 1))
-plt.axvline(0, color='k', alpha=0.5, linewidth=0.5)
-plt.legend()
-plt.savefig(fout + '{:s}freq_db{:d}.pdf'.format(varname, db))
+plt.xlabel('vertically averaged W (m/s)')
+plt.ylabel('{:s} ({:s})'.format(varname, vari.units.strip()))
+#plt.ylabel('frequency')
+plt.legend(loc='best')
+plt.savefig(fout + '{:s}vsW_db{:d}.pdf'.format(varname, db))
 plt.close()
 
 

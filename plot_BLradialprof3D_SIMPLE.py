@@ -21,15 +21,18 @@ from findTmoist import findTmoist
 
 c=constants()
 
-matplotlib.rcParams.update({'font.size': 22})
+matplotlib.rcParams.update({'font.size': 26})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'lines.linewidth': 3})
+matplotlib.rcParams.update({'legend.fontsize': 24})
+matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
 fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout='/Users/cpatrizio/Google Drive/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
+fout='/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
 
 nc_in3D1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
 nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
@@ -41,7 +44,7 @@ nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
 
 nc_in3D3 = glob.glob(fpath3D + '*1024x1024*day170to180*302K.nc')[0]
 nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
-nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*180days*302K.nc')[0]
+nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
 
 domsizes=[768, 1536, 3072]
 colors=['k', 'r', 'g']
@@ -53,11 +56,11 @@ nc_3Ds = [nc_in3D1, nc_in3D2, nc_in3D3]
 
 for i, domsize in enumerate(domsizes):
     if domsize == 768:
-        nave=10
+        nave=8
     elif domsize == 1536:
-        nave=5
+        nave=8
     else: 
-        nave=3
+        nave=8
 
     ntave2D=24
     ntave3D=4
@@ -97,6 +100,7 @@ for i, domsize in enumerate(domsizes):
     #varnames = ['QRAD', 'W', 'U', 'QN', 'QV']
     #varnames=['QV', 'TABS']
     varnames=['QV']
+    varnames = ['TABS']
 
     #calculate relative humidity 
     
@@ -169,9 +173,9 @@ for i, domsize in enumerate(domsizes):
             QV = varis3D['QV'][t3-aveperiod3D:t3,:,:,:]
             QV_tave = np.mean(QV, axis=0)
             RH_tave = np.zeros(QV_tave.shape)
-            for i, plev in enumerate(p):
-                wsat_tave = 1000*wsat(field_tave[i,:,:], plev) #convert to g/kg
-                RH_tave[i,:,:] = 100*(QV_tave[i,:,:]/wsat_tave) #convert to percent
+            for j, plev in enumerate(p):
+                wsat_tave = 1000*wsat(field_tave[j,:,:], plev) #convert to g/kg
+                RH_tave[j,:,:] = 100*(QV_tave[j,:,:]/wsat_tave) #convert to percent
             field_tave = RH_tave
         #calculate wind speed
         if varname == 'U':
@@ -303,9 +307,9 @@ for i, domsize in enumerate(domsizes):
         p_t = 200e2 #tropopause (Pa)
         p_BL = 900e2 #boundary layer top (Pa)
         T_s = 302
-        delz_BL = zBL
+        delz_BL = z[BLi]
         c_E = 0.001
-        l_d = domsize*(1./np.sqrt(2))
+        l_d = domsize*1e3*(1./np.sqrt(2))
         #r = np.linspace(0, l_d, 1e6)
         q_sat = wsat(T_s, p_s) #mixing ratio above sea surface (100% saturated)    
     
@@ -320,29 +324,41 @@ for i, domsize in enumerate(domsizes):
     
     
         q_BL = q_sat + 2*zhat*(q_FA - q_sat)/(l_d**2 - rbin_centers**2)*(rbin_centers + zhat - (zhat + l_d)*np.exp((rbin_centers - l_d)/zhat))
+        
+        RH_c = q_BL/q_sat
+        
+        if varname == 'QV':
+           titlename = r'$q_v$'
+        if varname == 'RH':
+           titlename = 'RH'
+
     
     
         #plot vertical means
         plt.figure(1)
         fieldmeanbar = np.mean(fieldmeans, axis=0)
-        fieldaverage = np.mean(fieldmeanbar)
+        fieldaverage = np.nanmean(fieldmeanbar)
         
         plt.plot(rbin_centers/(1e3*domsize), fieldmeanbar, color=colors[i], label='{:d} km, day {:3.0f} to {:3.0f}'.format(domsize, t3D[0], t3D[-1]))
-        plt.plot(rbin_centers/(1e3*domsize), q_BL, color=colors[i], alpha=0.5, label = '{:d} km, simple model'.format(domsize))
+        plt.plot(rbin_centers/(1e3*domsize), 100*RH_c, color=colors[i], alpha=0.5, linewidth=2, label = '{:d} km, simple model'.format(domsize))
         plt.xlabel(r'$\hat{r}$')
+        plt.ylim(0, 100)
         plt.xlim(0, 1/np.sqrt(2))
         #plt.xlabel('fractional distance from moist region center, relative to domain size')
-        plt.ylabel('{:s} ({:s})'.format(varname, units))
-        plt.title('boundary layer {:s}' .format(varname))
+        plt.ylabel('{:s} ({:s})'.format(titlename, units))
+        plt.title('BL {:s}' .format(titlename))
         plt.savefig(fout + '{:s}radialvertmean_day{:3.0f}to{:3.0f}.pdf'.format(varname, t3D[0], t3D[-1]))
+        plt.legend()
         plt.show()
         
-        qBLbar_s =  17.5 
+        #qBLbar_s =  17.5 
         
         if varname == 'QV':
-            print 'simple model average qBL = {:3.1f} g/kg'.format(qBLbar_s)
-            print 'simulation average qBL = {:3.1f} g/kg'.format(fieldaverage)
-        
+            print 'simple model average qBL = {:3.1f} g/kg'.format(np.mean(q_BL)*1e3)
+            print 'simple model average RH = {:3.3f} %'.format(RH_c)
+            print 'simulation average {:s} = {:3.1f} g/kg'.format(varname, fieldaverage)
+            
+
         
     
     

@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib.cm as cm
-from matplotlib.colors import LogNorm
 import matplotlib.ticker
 import matplotlib
 from SAM_init_plot.block_fns import blockave3D, blockave2D
@@ -22,25 +21,25 @@ fpath2D =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 fpath3D = '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
 foutdata = '/Users/cpatrizio/data/SST302/'
 #fout =  '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_MAPSNEW/'
-#fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_MAPSNEW/'
-fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MAPSNEW/'
+fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_MAPSNEW/'
+#fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_MAPSNEW/'
 
 
 #nc_STAT = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
 #nc_in = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
  
-#nc_STAT = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
-#nc_in = glob.glob(fpath2D + '*512x512*3000m*day180to195*302K.nc')[0]
+nc_STAT = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
+nc_in = glob.glob(fpath2D + '*512x512*3000m*day140to170*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day090to130*302K.nc')[0]
 
-nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
-nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day210to220*302K.nc')[0]
+#nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
+#nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day210to220*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 
 #domsize=768
-#domsize=1536
-domsize=3072
+domsize=1536
+#domsize=3072
 
 nc_data= Dataset(nc_in)
 nc_dataSTAT = Dataset(nc_STAT)
@@ -63,7 +62,7 @@ fac=12
 nave2D = 24/fac
 nave3D = 4/fac
 
-times = np.arange(-10*fac, 0)
+times = np.arange(nave2D, 30*fac)
 
 db=1
 
@@ -71,15 +70,15 @@ db=1
 xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
-varname = 'Prec'
-vari = varis2D[varname]
+#varname = 'W500'
+#vari = varis[varname]
 #field = vari[:]
 #field_tave = blockave3D(field, db)
 
 #
 #p = varis3D['p'][:]
 #z = varis3D['z'][:]
-#varname = 'SFCSPEED'
+varname = 'SFCSPEED'
 #varname = 'ALPHA'
 #vari = varis2D[varname]
 #plev = 500
@@ -166,7 +165,7 @@ else:
 #vals = np.arange(0, 800, 10)
 
 #Prec vals
-vals = np.arange(0, 1000, 10)
+#vals = np.arange(0, 1200, 20)
 
 #W blockave vals
 #vals = np.arange(-0.10, 0.5, 0.01)
@@ -175,7 +174,7 @@ vals = np.arange(0, 1000, 10)
 #vals = np.arange(-0.5, 8, 0.1)
 
 #USFC vals
-#vals= np.arange(0, 9, 0.2)
+vals= np.arange(0, 9, 0.2)
 
 #ALPHA VALS
 #vals = np.linspace(0, 0.1, 50)
@@ -188,7 +187,7 @@ vals = np.arange(0, 1000, 10)
 
 #vals = np.arange(-0.001, 0.001, .0001)
 
-#alpha_t = np.zeros(times.size)
+alpha_t = np.zeros(times.size)
 
 
 
@@ -363,11 +362,14 @@ for i in times:
     
     #wvals = [W_crit]
     
-    #PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
-    #PW_tave = np.mean(PW_field, axis=0)
-    #PW_tave = blockave2D(PW_tave, db)
-    #
-    #PWvals = np.arange(0, 88, 8)
+    PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
+    PW_tave = np.mean(PW_field, axis=0)
+    PW_tave = blockave2D(PW_tave, db)
+    
+    PWvals = np.arange(0, 88, 8)
+    
+    
+
     
     #field_tave = np.mean(field[t2-nave2D:t2,:,:], axis=0)
     #field_tave = blockave2D(field_tave, db)
@@ -383,7 +385,7 @@ for i in times:
     #minvar= np.min(field_tave[~np.isnan(field_tave)])
     #maxvar= np.max(field_tave[~np.isnan(field_tave)])
     #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, colors='k', linewidth=0.5, alpha=0.5)
-    #cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
+    cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
     #cs.collections[0].set_label('W$_c$ = {:3.2f} m/s'.format(W_crit))
     #cs.collections[0].set_label('PW')
     #plt.legend(loc='best')
@@ -394,15 +396,9 @@ for i in times:
     else:
         xxplot = xx
         yyplot = yy
-    if varname == 'Prec':
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='max')
-    else:
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='both')
-    cb = plt.colorbar(format='%.0f')
-    #plt.colorbar(format='%.2f')
-    #plt.colorbar()
+    plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0)
+    cb = plt.colorbar()
     cb.set_label('({0})'.format(units))
-    #cb.set_format(format='%.2f'))
     #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)
     plt.xlabel('x (km)')
     plt.ylabel('y (km)')
@@ -418,8 +414,6 @@ for i in times:
         titlename = r'$Q_{net,SW}$'
     elif varname == 'ALPHA':
         titlename = r'$\alpha$'
-    elif varname == 'Prec':
-        titlename = 'P'
     else:
         titlename = varname
     if db == 1:

@@ -1,3 +1,8 @@
+import matplotlib as mpl
+mpl.use('Agg')
+from netCDF4 import Dataset
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
@@ -6,7 +11,10 @@ import matplotlib.cm as cm
 import matplotlib.ticker
 import matplotlib
 import numpy.ma as ma
-from thermolib.constants import constants
+#from thermolib.constants import constants
+from constants import constants
+from wsat import wsat
+#from thermolib.wsat import wsat
 
 c = constants()
 
@@ -16,7 +24,7 @@ def moving_average(a, n=3) :
     return ret[n - 1:] / n
 
 matplotlib.rcParams.update({'font.size': 28})
-matplotlib.rcParams.update({'figure.figsize': (18, 10)})
+#matplotlib.rcParams.update({'figure.figsize': (18, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 1})
 matplotlib.rcParams.update({'legend.fontsize': 22})
 
@@ -24,13 +32,14 @@ matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
-fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Volumes/GoogleDrive/My Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_STAT/'
+fpath = '/glade/scratch/patrizio/OUT_STAT_nc/'
+#fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_STAT/'
+fout = '/glade/scratch/patrizio/OUT_STAT_FIGS/'
 
 nc_in1 = glob.glob(fpath + '*256x256*3000m*250days_302K.nc')[0]
 nc_in2 = glob.glob(fpath + '*512x512*3000m*195days_302K.nc')[0]
 nc_in3 = glob.glob(fpath + '*1024x1024*3000m*220days_302K.nc')[0]
-nc_in4 = glob.glob(fpath + '*2048x2048*3000m*340days_302K.nc')[0]
+nc_in4 = glob.glob(fpath + '*2048x2048*3000m*300days_302K.nc')[0]
 
 delx1=3000
 domsize1 = 768
@@ -67,7 +76,7 @@ t2 = nc_vars2['time'][:]
 t3 = nc_vars3['time'][:]
 
 
-t4d = -24*140 #time when doubling occurs
+t4d = -24*97 #time when doubling occurs
 
 t4 = nc_vars4['time'][t4d:]
 
@@ -381,7 +390,7 @@ for i, ts_name in enumerate(timeseries_names):
 
     #plt.title('{0} ({1})'.format(ts_name, ts_var1.units))
     plt.xlabel('time (days)')
-    plt.xlim((0,350))
+    plt.xlim((0,300))
     plt.axvline(tdouble, color='b', alpha=0.5)
     if titlename == 'PW' or titlename == 'LHF' or titlename == 'SHF' or titlename == 'P':
         plt.ylabel(r'$\overline{{\mathrm{{{0}}}}}$ ({1})'.format(titlename, ts_var1.units))
@@ -552,7 +561,7 @@ plt.legend(loc='best')
 plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'intQPI' + '_idealRCE.pdf')
 plt.close()
 
-nave=10
+nave=40
 
 PIpath1bar = np.mean(PIpath1[-nave*24:])/1e3
 PIpath2bar = np.mean(PIpath2[-nave*24:])/1e3

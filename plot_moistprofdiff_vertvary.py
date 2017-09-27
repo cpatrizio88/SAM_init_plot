@@ -12,10 +12,11 @@ import gc
 
 c = constants()
 
-matplotlib.rcParams.update({'font.size': 30})
-matplotlib.rcParams.update({'figure.figsize': (24, 18)})
+matplotlib.rcParams.update({'font.size': 26})
+matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 3})
-matplotlib.rcParams.update({'legend.fontsize': 22})
+matplotlib.rcParams.update({'legend.fontsize': 24})
+matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
@@ -86,7 +87,7 @@ t3s = [-1, -1, -1]
 aveperiod2D = nave*ntave2D
 aveperiod3D = nave*ntave3D
 
-varnames = ['Nsquared']
+varnames = ['TABS']
 
 #varnames = ['CLOUD AMOUNT']
 
@@ -126,10 +127,9 @@ varnames = ['Nsquared']
 
 #varnames = ['URADIAL', 'N']
 
-#varnames = ['W']
+#varnames = ['TABS']
 
-varnames = ['TABS']
-varnames = ['QV']
+#varnames = ['Nsquared']
 
 #MAYBE CALCULATE THETA, AND THEN STABILITY?
 
@@ -262,33 +262,14 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'BUOY':
             buoy_fname = glob.glob(foutdata + '*{:d}*_buoy_*to{:3.0f}*'.format(domsize, t3D[-1]))[0]
             print 'loading', buoy_fname
-            #field_tave = np.load(buoy_fname)
-            #field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = np.load(buoy_fname)
-            field_tave = np.mean(field_tave[t3/ntave3D-nave:t3/ntave3D,:,:,:],axis=0)
-            delz3D = np.zeros((nx, ny, nz-1))
-            delz3D[:,:,:] = np.diff(z)
-            delz3D = delz3D.T
-            field_tave = field_tave*delz3D
+            field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = blockave3D(field_tave, db)
         
         elif varname == 'CLOUD AMOUNT':
             QN = varis3D['QN'][t3-aveperiod3D:t3,:,:,:]
             QN_tave = np.mean(QN, axis=0)
             field_tave = blockave3D(QN_tave, db)
-        
-        elif varname == 'TABSprime':
-            vari = varis3D['TABS']
-            varname = 'TABSprime'
-            TABS = varis3D['TABS'][t3-aveperiod3D:t3,:,:,:]
-            T_tave = np.mean(TABS, axis=0)
-            T_bar = np.mean(np.mean(T_tave, axis=2), axis=1)
-            T_bar3D = np.zeros(T_tave.shape)
-            T_bar3D = T_bar3D.T
-            T_bar3D[:,:,:] = T_bar
-            T_bar3D = T_bar3D.T
-            Tprime = T_tave - T_bar3D
-            field_tave = blockave3D(Tprime,db)
             
         elif varname == 'THETA':
             p0=1000*1e2
@@ -558,7 +539,7 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'CLOUD AMOUNT':
             units = '%'
         elif varname == 'Nsquared':
-            units = r's$^{{-2}}$'
+            units = r's$^{{-1}}$'
         elif varname == 'W_ADIABATIC':
             units = 'm/s'
         elif varname == 'W_DIABATIC':
@@ -570,8 +551,6 @@ for i, domsize in enumerate(domsizes):
             #cb.set_label(units)
         elif varname == 'BUOY':
             units = 'Pa'
-        elif varname == 'TABSprime':
-            units = 'K'
         else:
             units = vari.units.strip()
             
@@ -597,8 +576,6 @@ for i, domsize in enumerate(domsizes):
             titlename = r'$\rho \frac{dw}{dt}$'
         elif varname == 'W':
             titlename = r'$w$'
-        elif varname == 'TABSprime':
-            titlename = r'$T - \overline{T}$'
         else:
             titlename = varname
             
@@ -611,8 +588,6 @@ for i, domsize in enumerate(domsizes):
         edge_prof = edge_prof[interior]
         
         p_BL = 950*1e2
-        
-        
         BLi = np.where(p < p_BL)[0][0]
         
         mid = np.bitwise_and(zint > 5000, zint < 6000)
@@ -622,8 +597,6 @@ for i, domsize in enumerate(domsizes):
         
         moist_profMIDave = np.mean(moist_profmid[np.isfinite(moist_profmid)])
         dry_profMIDave = np.mean(dry_profmid[np.isfinite(dry_profmid)])
-        
-        
         
         moist_profave = np.mean(moist_prof[np.isfinite(moist_prof)])
         dry_profave = np.mean(dry_prof[np.isfinite(dry_prof)])
@@ -644,94 +617,99 @@ for i, domsize in enumerate(domsizes):
         print 'moist region MID average {:s} = {:4.7f} ({:s})'.format(varname, moist_profMIDave, units)
         print 'dry region MID average {:s} = {:4.7f} ({:s})'.format(varname, dry_profMIDave, units)
         
+        #edge_profave = np.mean(edge_prof)
+        
+        #print 'moist region vertical average {:s} = {:4.4f} ({:s})'.format(varname, moist_profave, units)
+        #print 'dry region vertical average {:s} = {:4.4f} ({:s})'.format(varname, dry_profave, units)
+        
         fig = plt.figure(k)
-        ax1 = fig.add_subplot(2,1,1)
+        ax1 = fig.add_subplot(1,1,1)
         #plt.suptitle(r'{:s} ({:s}), convective region {:s} threshold = {:2.1f} {:s}'.format(varname, units, mvarname, mfieldcrit, mvar.units.strip()))
         h1, = ax1.plot(moist_prof, zint/1e3, color=colors[i])
         if db == 1:
             ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.1f} m/s'.format(titlename, W_crit))
         else:
-            ax1.set_title('{:s}, Mesoscale Convective Region'.format(titlename, W_crit))
-            #ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            #plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=30)
+            ax1.set_title('{:s}, Mesoscale Convective Region'.format(titlename))
+            #plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=26)
         #axarr[0,].set_xlabel('{:s} ({:s})'.format(varname, vari.units.strip()))
-        ax1.set_ylabel('z (km)')
+        ax1.set_ylabel('z (km)', fontsize=32)
         ax1.set_ylim(z_BL/1e3, z_t/1e3)
+        ax1.set_xlabel('{:s} ({:s})'.format(titlename, units), fontsize=32)
         #if (varname != 'QV'):
         #    axarr[0,].axvline(moist_profave, color='k', alpha=0.5, label='vertical average')
-        ax2 = fig.add_subplot(2,1,2)
-        ax2.plot(dry_prof, zint/1e3, color=colors[i])
-        if db == 1:
-            ax2.set_title('{:s}, Convection-Free Region, $w < w_c$  = {:2.1f} m/s'.format(titlename, W_crit))
-        else:
-            #ax2.set_title('{:s}, Convection-Free Region, $w < w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            ax2.set_title('{:s}, Dry Region'.format(titlename, W_crit))
-            
-        ax2.set_xlabel('{:s} ({:s})'.format(titlename, units))
-        ax2.set_ylabel('z (km)')
-        ax2.set_ylim(z_BL/1e3, z_t/1e3)
+        #ax2 = fig.add_subplot(2,1,2)
+        #ax2.plot(dry_prof, zint/1e3, color=colors[i])
+        #if db == 1:
+        #    ax2.set_title('{:s}, Convection-Free Region, $w < w_c$  = {:2.1f} m/s'.format(titlename, W_crit))
+        #else:
+        #    ax2.set_title('{:s}, Convection-Free Region, $w < w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
+        #    
+        #ax2.set_xlabel('{:s} ({:s})'.format(titlename, units))
+        #ax2.set_ylabel('z (km)')
+        #ax2.set_ylim(z_BL/1e3, z_t/1e3)
         if varname == 'W_ADIABATIC':
             ax1.set_xlim((-0.05, 0.16))
-            ax2.set_xlim((-0.008, 0))
+            #ax2.set_xlim((-0.008, 0))
         if varname == 'W':
-            #ax1.set_xlim(0, 0.2)
-            ax1.set_xlim(0.3, 0.5)
+            ax1.set_xlim(0, 0.2)
+            #ax1.set_xlim(0.3, 0.5)
         if varname == 'RH':
             ax1.set_xlim(0, 100)
-            ax2.set_xlim(0, 100)
-        if varname == 'Nsquared':
-            ax1.set_xlim(0, 0.0003)
+            #ax2.set_xlim(0, 100)
         #if varname == 'W_DIABATIC':
         #   ax1.set_xlim((
         #axarr[1,].axvline(dry_profave, color='k', alpha=0.5, label='vertical average')
         label1=r'{:d} km, day {:3.0f} to {:3.0f} average'.format(domsize, t3D[0], t3D[-1])
         #fig.legend(hs, labels, 'best')       
-        fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-        fig = plt.figure(len(varnames)+k)
-        ax = fig.gca()
-        h2, = ax.plot(moist_prof - dry_prof, zint/1e3, color=colors[i])
-        ax.set_title('differential {:s} between convective region and dry region'.format(varname, nave))
-        ax.set_ylabel('z (km)')
-        ax.set_xlabel('differential {:s} ({:s})'.format(varname, units))
-        ax.set_ylim(z_BL/1e3, z_t/1e3)
-        fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        fig.savefig(fout + '{:s}CONVprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        #fig = plt.figure(len(varnames)+k)
+        #ax = fig.gca()
+        #h2, = ax.plot(moist_prof - dry_prof, zint/1e3, color=colors[i])
+        #ax.set_title('differential {:s} between convective region and dry region'.format(varname, nave))
+        #ax.set_ylabel('z (km)')
+        #ax.set_xlabel('differential {:s} ({:s})'.format(varname, units))
+        #ax.set_ylim(z_BL/1e3, z_t/1e3)
+        #fig.savefig(fout + 'DIFF{:s}CONVprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
         
-        if varname == 'URADIAL':
-            fig = plt.figure(2*len(varnames)+k)
-            ax = fig.gca()
-            h3, = ax.plot(edge_prof, zint/1e3, color=colors[i])
-            ax.set_title(r'{:s} at convective edge, {:3.1f}W$_c$  < W < {:3.1f}W$_c$  m/s'.format(varname, Wedge_l, Wedge_u))
-            ax.set_ylabel('z (km)')
-            ax.set_xlabel('{:s} ({:s})'.format(varname, units))
-            ax.set_ylim(z_BL/1e3, z_t/1e3)
-            fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-            
+        #if varname == 'URADIAL':
+        #    fig = plt.figure(2*len(varnames)+k)
+        #    ax = fig.gca()
+        #    h3, = ax.plot(edge_prof, zint/1e3, color=colors[i])
+        #    ax.set_title(r'{:s} at convective edge, {:3.1f}W$_c$  < W < {:3.1f}W$_c$  m/s'.format(varname, Wedge_l, Wedge_u))
+        #    ax.set_ylabel('z (km)')
+        #    ax.set_xlabel('{:s} ({:s})'.format(varname, units))
+        #    ax.set_ylim(z_BL/1e3, z_t/1e3)
+        #    fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        #    
     labels = labels + [label1]
     hs1 = hs1 + [h1]
-    hs2 = hs2 + [h2] 
-    if varname == 'URADIAL':
-        hs3 = hs3 + [h3]
+    #hs2 = hs2 + [h2] 
+    #if varname == 'URADIAL':
+    #    hs3 = hs3 + [h3]
         
     gc.collect()
+
+
 
 #set up legends
 for k, varname in enumerate(varnames):
     fig=plt.figure(k)
-    ax=plt.subplot(2,1,1)
+    ax=plt.subplot(1,1,1)
     ax.legend(hs1, labels, loc='best')
-    fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    fig.savefig(fout + '{:s}CONVprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
     plt.close(k)
-    fig=plt.figure(len(varnames)+k)
-    ax = fig.gca()
-    ax.legend(hs2, labels, loc='best')
-    fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-    plt.close(len(varname)+k)
-    if varname == 'URADIAL':
-        fig=plt.figure(2*len(varnames)+ k)
-        ax = fig.gca()
-        ax.legend(hs3, labels, loc='best')
-        fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-        plt.close(2*len(varnames)+k)
+    #plt.close(k)
+    #fig=plt.figure(len(varnames)+k)
+    #ax = fig.gca()
+    #ax.legend(hs2, labels, loc='best')
+    #fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    #plt.close(len(varname)+k)
+    #if varname == 'URADIAL':
+    #    fig=plt.figure(2*len(varnames)+ k)
+    #    ax = fig.gca()
+    #    ax.legend(hs3, labels, loc='best')
+    #    fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    #    plt.close(2*len(varnames)+k)
         
 
 

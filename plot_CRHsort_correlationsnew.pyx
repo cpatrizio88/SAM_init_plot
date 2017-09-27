@@ -10,8 +10,9 @@ import SAM_init_plot.block_fns
 from SAM_init_plot.block_fns import blockave2D, blocksort2D, blocksort3D, vertint
 import collections
 
-#import pyximport; pyximport.install(pyimport = True)
-#from cython.view import array as cvarray
+import pyximport; pyximport.install(pyimport = True)
+cimport cython.view
+from cython.view cimport array as cvarray
 
 
 c = constants()
@@ -58,7 +59,8 @@ p = varis3D['p'][:]
 p = p*1e2
 #2D variables
 print 'loading 2D variables'
-PW = varis2D['PW'][:]
+#PW = varis2D['PW'][:]
+cdef float[:,:,:,:] PW = varis2D['PW'][:]
 IWP = varis2D['IWP'][:]
 LHF = varis2D['LHF'][:]
 SHF = varis2D['SHF'][:]
@@ -328,9 +330,9 @@ for i3, ti in enumerate(times):
 
     #calculate correlation of h^' with horizontal convergence of FMSE
     if ti > times[0]:
-        ddthfhatprime_square = (np.power(hfhatprimes[i3,:,:],2) - np.power(hfhatprimes[i3-1,:,:],2))/dt3D
-        #conv =  ddthfhatprime  - (SEFprime + netLWprime + netSWprime) 
-        corr_conv = (1/2.)*ddthfhatprime_square - (corr_SEF + corr_netLW + corr_netSW)
+        ddthfhatprime = (hfhatprimes[i3,:,:] - hfhatprimes[i3-1,:,:])/dt3D
+        conv = ddthfhatprime  - (SEFprime + netLWprime + netSWprime) 
+        corr_conv = (hfhatprime*conv)
         corr_convblock = blockave2D(corr_conv, db).flatten()
         #oCRH_corr_convblock = dict(zip(CRHblock, corr_convblock))
         CRH_corr_convsort = [x for y, x in sorted(zip(CRHblock, corr_convblock))] 
@@ -346,20 +348,20 @@ rankss, tt = np.meshgrid(CRHranks, times)
 ####### PLOTTING #######
 
 #plot MSE correlation with different MSE budget terms in 2D (CRH rank, time)
+plt.figure(1)
+f, axarr = plt.subplots(7,1)
+vmin = -1
+vmax = 1
+
 hfhatprimesortvar = np.multiply(hfhatprimesort, hfhatprimesort)
 
 hfhatvarbar_t = np.mean(hfhatprimesortvar, axis=1)
 
 hfhatvarbar = np.zeros(hfhatprimesortvar.shape).T
-hfhatvarbar[:,:] = hfhatvarbar_t
+hfhatvarbar[:,:] = hfhatvarbar
 hfhatvarbar = hfhatvarbar.T
 
 levels = np.linspace(-1,1,100)
-
-plt.figure(1)
-f, axarr = plt.subplots(3,1)
-vmin = -1
-vmax = 1
 
 cf = axarr[0].contourf(rankss, tt, (corr_SEFs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
 axarr[0].set_title(r'$\hat h^{\prime} \mathrm{SEF}^{\prime}$')
@@ -367,6 +369,14 @@ cf = axarr[1].contourf(rankss, tt, (corr_netLWs/hfhatvarbar)*(3600*24), levels, 
 axarr[1].set_title(r'$\hat h^{\prime} \mathrm{netLW}^{\prime}$')
 cf = axarr[2].contourf(rankss, tt, (corr_netSWs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
 axarr[2].set_title(r'$\hat h^{\prime} \mathrm{netSW}^{\prime}$')
+cf = axarr[3].contourf(rankss, tt, (corr_netSWclds/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
+axarr[3].set_title(r'$\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}$')
+cf = axarr[4].contourf(rankss, tt, (corr_netLWclds/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
+axarr[4].set_title(r'$\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}$')
+cf = axarr[5].contourf(rankss, tt, (corr_netSWCs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
+axarr[5].set_title(r'$\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}$')
+cf = axarr[6].contourf(rankss, tt, (corr_netLWCs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
+axarr[6].set_title(r'$\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}$')
 cbar_ax = f.add_axes([0.85, 0.15, 0.05, 0.7])
 f.text(0.47, 0.06, 'CRH rank', ha='center', va='center')
 f.text(0.08, 0.5, 'time (days)', ha='center', va='center', rotation='vertical')
@@ -375,31 +385,7 @@ cb = f.colorbar(cf, cax=cbar_ax)
 #TODO: add superior x,y axis labels
 #plt.ylabel('days')
 cb.set_label('FMSE anomaly amplification (per day)')
-plt.savefig(fout + 'CRHsort_RADfeedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
-plt.close()
-
-plt.figure(2)
-f, axarr = plt.subplots(4,1)
-vmin = -1
-vmax = 1
-
-cf = axarr[0].contourf(rankss, tt, (corr_netSWclds/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
-axarr[0].set_title(r'$\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}$')
-cf = axarr[1].contourf(rankss, tt, (corr_netLWclds/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
-axarr[1].set_title(r'$\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}$')
-cf = axarr[2].contourf(rankss, tt, (corr_netSWCs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
-axarr[2].set_title(r'$\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}$')
-cf = axarr[3].contourf(rankss, tt, (corr_netLWCs/hfhatvarbar)*(3600*24), levels, cmap=cm.RdBu_r)
-axarr[3].set_title(r'$\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}$')
-cbar_ax = f.add_axes([0.85, 0.15, 0.05, 0.7])
-f.text(0.47, 0.06, 'CRH rank', ha='center', va='center')
-f.text(0.08, 0.5, 'time (days)', ha='center', va='center', rotation='vertical')
-f.subplots_adjust(right=0.8)
-cb = f.colorbar(cf, cax=cbar_ax)
-#TODO: add superior x,y axis labels
-#plt.ylabel('days')
-cb.set_label('FMSE anomaly amplification (per day)')
-plt.savefig(fout + 'CRHsort_CLDRADfeedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
+plt.savefig(fout + 'CRHsort_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()
 
 plt.figure(2)
@@ -427,19 +413,18 @@ corr_convbar = np.mean(corr_convs, axis=1)
 
 nave3D=4
 w = nave3D*5
-conv_smooth = moving_average((corr_convbar/hfhatvarbar_t), w)
+conv_smooth = moving_average((corr_convbar/hfhatvarbar), w)
 
 plt.figure(2)
-plt.plot(tt[:,0], (corr_SEFbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{SEF}^{\prime}}$')
-plt.plot(tt[:,0], (corr_netLWbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}^{\prime}}$')
-plt.plot(tt[:,0], (corr_netSWbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}^{\prime}}$')
+plt.plot(tt[:,0], (corr_SEFbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{SEF}^{\prime}}$')
+plt.plot(tt[:,0], (corr_netLWbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}^{\prime}}$')
+plt.plot(tt[:,0], (corr_netSWbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}^{\prime}}$')
 #plt.plot(tt[:,0], corr_netSWcldbar*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}}$')
 #plt.plot(tt[:,0], corr_netLWcldbar*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}}$')
 #plt.plot(tt[:,0], corr_netLWCbar*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}}$')
 #plt.plot(tt[:,0], corr_netSWCbar*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}}$')
-plt.plot(tt[:,0], (corr_convbar/hfhatvarbar_t)*(3600*24), 'm--', alpha=0.3, label=r'$- \overline{\hat h^{\prime} \nabla _H \cdot{\hat{\vec{u}}h}}$')
-plt.plot(tt[w/2:-w/2+1,0], conv_smooth*(3600*24), 'm', label=r'smoothed convergence')
-plt.axhline(0, color='k', alpha=0.5)
+plt.plot(tt[:,0], (corr_convbar/hfhatvarbar)*(3600*24), 'g--', label=r'$- \overline{\hat h^{\prime} \nabla _H \cdot{\hat{\vec{u}}h}}$')
+plt.plot(tt[:,w/2:-w/2+1], conv_smooth*(3600*24), 'g', label=r'smoothed convergence')
 plt.title(r'FMSE variance budget terms, normalized by domain mean FMSE ')
 plt.xlabel('time (days)')
 plt.ylabel('rate of change of FMSE variance (per day)')
@@ -449,12 +434,11 @@ plt.savefig(fout + 'mean_feedbacks_day{0}to{1}.pdf'.format(tt[0, 0], tt[-1,0]))
 plt.close()
 
 plt.figure(3)
-plt.plot(tt[:,0], (corr_netSWcldbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}}$')
-plt.plot(tt[:,0], (corr_netLWcldbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}}$')
-plt.plot(tt[:,0], (corr_netLWCbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}}$')
-plt.plot(tt[:,0], (corr_netSWCbar/hfhatvarbar_t)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}}$')
-plt.axhline(0, color='k', alpha=0.5)
-plt.title(r'FMSE variance budget radiation terms, normalized by domain mean FMSE')
+plt.plot(tt[:,0], (corr_netSWcldbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{cld}^{\prime}}$')
+plt.plot(tt[:,0], (corr_netLWcldbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{cld}^{\prime}}$')
+plt.plot(tt[:,0], (corr_netLWCbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netLW}_{clear}^{\prime}}$')
+plt.plot(tt[:,0], (corr_netSWCbar/hfhatvarbar)*(3600*24), label=r'$\overline{\hat h^{\prime} \mathrm{netSW}_{clear}^{\prime}}$')
+plt.title(r'FMSE variance budget terms (radiation), normalized by domain mean FMSE')
 plt.xlabel('time (days)')
 plt.ylabel('rate of change of FMSE variance (per day)')
 plt.legend(loc='best')

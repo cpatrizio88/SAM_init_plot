@@ -1,35 +1,55 @@
+import matplotlib as mpl
+mpl.use('Agg')
+from netCDF4 import Dataset
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib
 import matplotlib.cm as cm
-from thermolib.wsat import wsat
-from thermolib.constants import constants
-from SAM_init_plot.block_fns import blockave3D
-import SAM_init_plot.misc_fns 
+#import SAM_init_plot.block_fns
+#import SAM_init_plot.misc_fns
+#import thermolib
+#from SAM_init_plot.misc_fns import radprof3D, radprof
+#from misc_fns import radprof3D, radprof
+#from SAM_init_plot.block_fns import blockave2D, blockave3D, blockxysort2D
+from block_fns import blockave3D
+from wsat import wsat
+from constants import constants
+import matplotlib.colors as colors
 import gc
+
+
+
 
 c = constants()
 
-matplotlib.rcParams.update({'font.size': 30})
-matplotlib.rcParams.update({'figure.figsize': (24, 18)})
+matplotlib.rcParams.update({'font.size': 26})
+matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 3})
-matplotlib.rcParams.update({'legend.fontsize': 22})
+matplotlib.rcParams.update({'legend.fontsize': 24})
+matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
-fpath2D =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
-fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
+# fpath2D =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
+# fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
+# fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
 
-foutdata = '/Users/cpatrizio/data/SST302/'
+fpath2D = '/glade/scratch/patrizio/OUT_2D_nc/'
+fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
+fpathSTAT = '/glade/scratch/patrizio/OUT_STAT_nc/'
+
+#foutdata = '/Users/cpatrizio/data/SST302/'
 
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_MOISTDRYPROFS/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to140_64vert_ubarzero_MOISTDRYPROFS/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to130_64vert_ubarzero_MOISTDRYPROFS/'
 
-fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_MOISTDRYPROFS/'
+#fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_MOISTDRYPROFS/'
+fout = '/glade/scratch/patrizio/MOISTPROF_FIGS'
 
 nc_inSTAT1 = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
 nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
@@ -44,11 +64,15 @@ nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
 nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 nc_in3D3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 
+nc_inSTAT4 = glob.glob(fpathSTAT + '*2048*3000m*302K.nc')[0]
+nc_in2D4 = glob.glob(fpath2D + '*2048*3000m*.nc')[0]
+nc_in3D4 = glob.glob(fpath3D + '*2048*3000m*302K.nc')[0]
 
-domsizes = [768, 1536, 3072]
-nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3]
-nc_2Ds = [nc_in2D1, nc_in2D2, nc_in2D3]
-nc_3Ds = [nc_in3D1, nc_in3D2, nc_in3D3]
+
+domsizes = [768, 1536, 3072, 6144]
+nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3, nc_inSTAT4]
+nc_2Ds = [nc_in2D1, nc_in2D2, nc_in2D3, nc_in2D4]
+nc_3Ds = [nc_in3D1, nc_in3D2, nc_in3D3, nc_in3D4]
 
 #domsizes = [3072]
 #nc_STATs = [nc_inSTAT3]
@@ -70,7 +94,7 @@ nc_3Ds = [nc_in3D1, nc_in3D2, nc_in3D3]
 #nc_2Ds = [nc_in2D1, nc_in2D2]
 #nc_3Ds = [nc_in3D1, nc_in3D2]
 
-colors = ['k', 'r', 'g']
+colors = ['k', 'r', 'g', 'm']
 #colors = ['k', 'r']
 #colors = ['k', 'r']
 
@@ -80,13 +104,13 @@ ntave3D=4
 #t2 = -35*ntave2D
 #t3 = -35*ntave3D
 
-t2s = [-1, -1, -1]
-t3s = [-1, -1, -1]
+t2s = [-1, -1, -1, -1]
+t3s = [-1, -1, -1, -1]
 
 aveperiod2D = nave*ntave2D
 aveperiod3D = nave*ntave3D
 
-varnames = ['Nsquared']
+varnames = ['W']
 
 #varnames = ['CLOUD AMOUNT']
 
@@ -126,10 +150,11 @@ varnames = ['Nsquared']
 
 #varnames = ['URADIAL', 'N']
 
-#varnames = ['W']
-
-varnames = ['TABS']
 varnames = ['QV']
+#varnames = ['ADBWARMplusQRADBAR']
+#varnames = ['TABS']
+
+#varnames = ['Nsquared']
 
 #MAYBE CALCULATE THETA, AND THEN STABILITY?
 
@@ -235,8 +260,8 @@ for i, domsize in enumerate(domsizes):
     
     dthetadz_crit = 2e-3
     
-    BLi = np.where(dthetadz > dthetadz_crit)[0][0]
-    BLi = 0
+    BLi = np.where(z > 1000)[0][0]
+    #BLi = 0
     
     p_BL = p[BLi]
     z_BL = z[BLi]
@@ -262,33 +287,14 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'BUOY':
             buoy_fname = glob.glob(foutdata + '*{:d}*_buoy_*to{:3.0f}*'.format(domsize, t3D[-1]))[0]
             print 'loading', buoy_fname
-            #field_tave = np.load(buoy_fname)
-            #field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = np.load(buoy_fname)
-            field_tave = np.mean(field_tave[t3/ntave3D-nave:t3/ntave3D,:,:,:],axis=0)
-            delz3D = np.zeros((nx, ny, nz-1))
-            delz3D[:,:,:] = np.diff(z)
-            delz3D = delz3D.T
-            field_tave = field_tave*delz3D
+            field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = blockave3D(field_tave, db)
         
         elif varname == 'CLOUD AMOUNT':
             QN = varis3D['QN'][t3-aveperiod3D:t3,:,:,:]
             QN_tave = np.mean(QN, axis=0)
             field_tave = blockave3D(QN_tave, db)
-        
-        elif varname == 'TABSprime':
-            vari = varis3D['TABS']
-            varname = 'TABSprime'
-            TABS = varis3D['TABS'][t3-aveperiod3D:t3,:,:,:]
-            T_tave = np.mean(TABS, axis=0)
-            T_bar = np.mean(np.mean(T_tave, axis=2), axis=1)
-            T_bar3D = np.zeros(T_tave.shape)
-            T_bar3D = T_bar3D.T
-            T_bar3D[:,:,:] = T_bar
-            T_bar3D = T_bar3D.T
-            Tprime = T_tave - T_bar3D
-            field_tave = blockave3D(Tprime,db)
             
         elif varname == 'THETA':
             p0=1000*1e2
@@ -558,7 +564,7 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'CLOUD AMOUNT':
             units = '%'
         elif varname == 'Nsquared':
-            units = r's$^{{-2}}$'
+            units = r's$^{{-1}}$'
         elif varname == 'W_ADIABATIC':
             units = 'm/s'
         elif varname == 'W_DIABATIC':
@@ -570,15 +576,14 @@ for i, domsize in enumerate(domsizes):
             #cb.set_label(units)
         elif varname == 'BUOY':
             units = 'Pa'
-        elif varname == 'TABSprime':
-            units = 'K'
         else:
             units = vari.units.strip()
             
         if varname == 'ADBWARMplusQRAD':
             titlename = r'$-w\frac{ds}{dz}$ + Q$_r$'
         elif varname == 'ADBWARMplusQRADBAR':
-            titlename =  r'$-\bar{w}\frac{d\bar{s}}{dz}$ + Q$_r$'
+            #titlename =  r'$-\bar{w}\frac{d\bar{s}}{dz}$ + Q$_r$'
+             titlename = r'$-w\frac{ds}{dz}$ + Q$_r$'
         elif varname == 'QRAD':
             titlename = r'Q$_r$'
         elif varname == 'ADBWARM':
@@ -597,8 +602,6 @@ for i, domsize in enumerate(domsizes):
             titlename = r'$\rho \frac{dw}{dt}$'
         elif varname == 'W':
             titlename = r'$w$'
-        elif varname == 'TABSprime':
-            titlename = r'$T - \overline{T}$'
         else:
             titlename = varname
             
@@ -610,9 +613,11 @@ for i, domsize in enumerate(domsizes):
         dry_prof = dry_prof[interior]
         edge_prof = edge_prof[interior]
         
+        moist_profave = np.mean(moist_prof[np.isfinite(moist_prof)])
+        dry_profave = np.mean(dry_prof[np.isfinite(dry_prof)])
+        #edge_profave = np.mean(edge_prof)
+        
         p_BL = 950*1e2
-        
-        
         BLi = np.where(p < p_BL)[0][0]
         
         mid = np.bitwise_and(zint > 5000, zint < 6000)
@@ -622,7 +627,6 @@ for i, domsize in enumerate(domsizes):
         
         moist_profMIDave = np.mean(moist_profmid[np.isfinite(moist_profmid)])
         dry_profMIDave = np.mean(dry_profmid[np.isfinite(dry_profmid)])
-        
         
         
         moist_profave = np.mean(moist_prof[np.isfinite(moist_prof)])
@@ -643,95 +647,94 @@ for i, domsize in enumerate(domsizes):
         print 'dry region BL variance {:s} = {:4.7f}'.format(varname, np.var(dry_profBL[np.isfinite(dry_profBL)]))
         print 'moist region MID average {:s} = {:4.7f} ({:s})'.format(varname, moist_profMIDave, units)
         print 'dry region MID average {:s} = {:4.7f} ({:s})'.format(varname, dry_profMIDave, units)
+
         
         fig = plt.figure(k)
-        ax1 = fig.add_subplot(2,1,1)
+        ax2 = fig.add_subplot(1,1,1)
         #plt.suptitle(r'{:s} ({:s}), convective region {:s} threshold = {:2.1f} {:s}'.format(varname, units, mvarname, mfieldcrit, mvar.units.strip()))
-        h1, = ax1.plot(moist_prof, zint/1e3, color=colors[i])
-        if db == 1:
-            ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.1f} m/s'.format(titlename, W_crit))
-        else:
-            ax1.set_title('{:s}, Mesoscale Convective Region'.format(titlename, W_crit))
-            #ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            #plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=30)
-        #axarr[0,].set_xlabel('{:s} ({:s})'.format(varname, vari.units.strip()))
-        ax1.set_ylabel('z (km)')
-        ax1.set_ylim(z_BL/1e3, z_t/1e3)
+        #h1, = ax1.plot(moist_prof, zint/1e3, color=colors[i])
+        #if db == 1:
+        #    ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.1f} m/s'.format(titlename, W_crit))
+        #else:
+        #    ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
+        #    plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=30)
+        ##axarr[0,].set_xlabel('{:s} ({:s})'.format(varname, vari.units.strip()))
+        #ax1.set_ylabel('z (km)')
+        #ax1.set_ylim(z_BL/1e3, z_t/1e3)
+        #ax1.set_xlabel('{:s} ({:s})'.format(titlename, units))
         #if (varname != 'QV'):
         #    axarr[0,].axvline(moist_profave, color='k', alpha=0.5, label='vertical average')
-        ax2 = fig.add_subplot(2,1,2)
-        ax2.plot(dry_prof, zint/1e3, color=colors[i])
+        #ax2 = fig.add_subplot(2,1,2)
+        h1, = ax2.plot(dry_prof, zint/1e3, color=colors[i])
         if db == 1:
-            ax2.set_title('{:s}, Convection-Free Region, $w < w_c$  = {:2.1f} m/s'.format(titlename, W_crit))
+            tt1=ax2.set_title('{:s}, Convection-Free Region, $w < w_c$  = {:2.1f} m/s'.format(titlename, W_crit))
         else:
-            #ax2.set_title('{:s}, Convection-Free Region, $w < w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            ax2.set_title('{:s}, Dry Region'.format(titlename, W_crit))
-            
-        ax2.set_xlabel('{:s} ({:s})'.format(titlename, units))
-        ax2.set_ylabel('z (km)')
+            tt1=ax2.set_title('{:s}, Dry Region'.format(titlename))
+            #plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=24)
+        tt1.set_position([0.5, 1.005])    
+        ax2.set_xlabel('{:s} ({:s})'.format(titlename, units), fontsize=32)
+        ax2.set_ylabel('z (km)', fontsize=32)
         ax2.set_ylim(z_BL/1e3, z_t/1e3)
-        if varname == 'W_ADIABATIC':
-            ax1.set_xlim((-0.05, 0.16))
-            ax2.set_xlim((-0.008, 0))
-        if varname == 'W':
-            #ax1.set_xlim(0, 0.2)
-            ax1.set_xlim(0.3, 0.5)
-        if varname == 'RH':
-            ax1.set_xlim(0, 100)
-            ax2.set_xlim(0, 100)
-        if varname == 'Nsquared':
-            ax1.set_xlim(0, 0.0003)
+        #if varname == 'W_ADIABATIC':
+        #    ax1.set_xlim((-0.05, 0.16))
+        #    #ax2.set_xlim((-0.008, 0))
+        #if varname == 'W':
+        #    #ax1.set_xlim(0, 0.2)
+        #    ax1.set_xlim(0.3, 0.5)
+        #if varname == 'RH':
+        #    ax1.set_xlim(0, 100)
+        #    #ax2.set_xlim(0, 100)
         #if varname == 'W_DIABATIC':
         #   ax1.set_xlim((
         #axarr[1,].axvline(dry_profave, color='k', alpha=0.5, label='vertical average')
         label1=r'{:d} km, day {:3.0f} to {:3.0f} average'.format(domsize, t3D[0], t3D[-1])
         #fig.legend(hs, labels, 'best')       
-        fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-        fig = plt.figure(len(varnames)+k)
-        ax = fig.gca()
-        h2, = ax.plot(moist_prof - dry_prof, zint/1e3, color=colors[i])
-        ax.set_title('differential {:s} between convective region and dry region'.format(varname, nave))
-        ax.set_ylabel('z (km)')
-        ax.set_xlabel('differential {:s} ({:s})'.format(varname, units))
-        ax.set_ylim(z_BL/1e3, z_t/1e3)
-        fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        fig.savefig(fout + '{:s}DRYprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        #fig = plt.figure(len(varnames)+k)
+        #ax = fig.gca()
+        #h2, = ax.plot(moist_prof - dry_prof, zint/1e3, color=colors[i])
+        #ax.set_title('differential {:s} between convective region and dry region'.format(varname, nave))
+        #ax.set_ylabel('z (km)')
+        #ax.set_xlabel('differential {:s} ({:s})'.format(varname, units))
+        #ax.set_ylim(z_BL/1e3, z_t/1e3)
+        #fig.savefig(fout + 'DIFF{:s}CONVprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
         
-        if varname == 'URADIAL':
-            fig = plt.figure(2*len(varnames)+k)
-            ax = fig.gca()
-            h3, = ax.plot(edge_prof, zint/1e3, color=colors[i])
-            ax.set_title(r'{:s} at convective edge, {:3.1f}W$_c$  < W < {:3.1f}W$_c$  m/s'.format(varname, Wedge_l, Wedge_u))
-            ax.set_ylabel('z (km)')
-            ax.set_xlabel('{:s} ({:s})'.format(varname, units))
-            ax.set_ylim(z_BL/1e3, z_t/1e3)
-            fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-            
+        #if varname == 'URADIAL':
+        #    fig = plt.figure(2*len(varnames)+k)
+        #    ax = fig.gca()
+        #    h3, = ax.plot(edge_prof, zint/1e3, color=colors[i])
+        #    ax.set_title(r'{:s} at convective edge, {:3.1f}W$_c$  < W < {:3.1f}W$_c$  m/s'.format(varname, Wedge_l, Wedge_u))
+        #    ax.set_ylabel('z (km)')
+        #    ax.set_xlabel('{:s} ({:s})'.format(varname, units))
+        #    ax.set_ylim(z_BL/1e3, z_t/1e3)
+        #    fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+        #    
     labels = labels + [label1]
     hs1 = hs1 + [h1]
-    hs2 = hs2 + [h2] 
-    if varname == 'URADIAL':
-        hs3 = hs3 + [h3]
+    #hs2 = hs2 + [h2] 
+    #if varname == 'URADIAL':
+    #    hs3 = hs3 + [h3]
         
     gc.collect()
 
 #set up legends
 for k, varname in enumerate(varnames):
     fig=plt.figure(k)
-    ax=plt.subplot(2,1,1)
+    ax=plt.subplot(1,1,1)
     ax.legend(hs1, labels, loc='best')
-    fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-    plt.close(k)
-    fig=plt.figure(len(varnames)+k)
-    ax = fig.gca()
-    ax.legend(hs2, labels, loc='best')
-    fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-    plt.close(len(varname)+k)
-    if varname == 'URADIAL':
-        fig=plt.figure(2*len(varnames)+ k)
-        ax = fig.gca()
-        ax.legend(hs3, labels, loc='best')
-        fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-        plt.close(2*len(varnames)+k)
+    fig.savefig(fout + '{:s}DRYprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    #plt.close(k)
+    #fig=plt.figure(len(varnames)+k)
+    #ax = fig.gca()
+    #ax.legend(hs2, labels, loc='best')
+    #fig.savefig(fout + 'DIFF{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    #plt.close(len(varname)+k)
+    #if varname == 'URADIAL':
+    #    fig=plt.figure(2*len(varnames)+ k)
+    #    ax = fig.gca()
+    #    ax.legend(hs3, labels, loc='best')
+    #    fig.savefig(fout + '{:s}convedge_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
+    #    plt.close(2*len(varnames)+k)
         
 
 

@@ -4,26 +4,36 @@ import glob
 import numpy as np
 import matplotlib.cm as cm
 import matplotlib.ticker
+import matplotlib.ticker as ticker
 import matplotlib
 
-matplotlib.rcParams.update({'font.size': 24})
+matplotlib.rcParams.update({'font.size': 28})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 
 plt.style.use('seaborn-white')
 
-
+fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
 fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_STAT/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggr130days_64vert_ubarzero_STAT/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggr150days_64vert_ubarzero_STAT/'
+#fout='/Users/cpatrizio/Google Drive/figures/SST302/RCEDRY_STAT/'
 
 domsize=768
 #domsize=1536
 #domsize = 3072
+#domsize=96
 
 nc_in = glob.glob(fpath + '*256x256*3000m*250days_302K.nc')[0]
 #nc_in = glob.glob(fpath + '*512x512*3000m*195days*302K*.nc')[0]
-#nc_in = glob.glob(fpath + '*1024x1024*3000m*190days*302K*.nc')[0]
+#nc_in = glob.glob(fpath + '*1024x1024*3000m*220days*302K*.nc')[0]
+#nc_in = glob.glob(fpath + '*64x64*1500m*80days_302K.nc')[0]
+
+#nc_in2D = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
+#nc_data2D = Dataset(nc_in2D)
+#nc_vars2D = nc_data2D.variables
+
+
 
 
 nc_data = Dataset(nc_in)
@@ -38,10 +48,18 @@ tdouble = 90
 
 nstat=24
 
+#PW90 = nc_vars2D['PW'][tdouble*nstat,:,:]
+
+#PWbar = np.mean(PW90)
+
 profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QN', 'QP', 'QCL', 'QI', 'QPL', 'QPI', 'QV', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR']
 timeseries_names = ['PW', 'LHF', 'SHF', 'PREC', 'CAPE', 'LWNTOA', 'LWNT', 'SWNTOA', 'LWNS', 'SWNS', 'CLDLOW', 'CLDHI'] 
 
-profile_names = ['QV', 'RADQR', 'QN', 'RELH', 'DSDZ']
+#profile_names = ['QV', 'RADQR', 'QN', 'RELH']
+
+#profile_names = ['DSDZ']
+#profile_names = ['RADQR']
+#profile_names = ['RELH', 'QV']
 #profile_names = ['DSDZ']
 
 for i, profile_name in enumerate(profile_names):
@@ -56,6 +74,26 @@ for i, profile_name in enumerate(profile_names):
         units = 'J/m'
         z = z[:profile.shape[1]]
         p = p[:profile.shape[1]]
+    elif profile_name == 'PWdiff': 
+        QV = nc_vars['QV'][:,:-1]*1e-3
+        rho_w = 1000
+        g = 9.81
+        diffp = np.diff(p)*1e2
+        diffp2D = np.zeros(QV.shape)
+        diffp2D[:,:] = -diffp
+        QVlay = (1./(rho_w*g))*QV*diffp2D #amount of water vapor in layer (m)
+        QVlay=QVlay*1e3 #convert to mm
+        QV90 = QVlay[tdouble*nstat,:]
+        PWt = np.sum(QVlay, axis=1)
+        PWt2D = np.zeros(QVlay.T.shape)
+        PWt2D[:,:] = PWt
+        PWt2D = PWt2D.T
+        PWdiff = (QVlay - QV90)
+        profile = PWdiff
+        units = 'mm'
+        z = z[:profile.shape[1]]
+        p = p[:profile.shape[1]]
+        
     else:
         profile_var = nc_vars[profile_name]
         profile = profile_var[:]
@@ -63,10 +101,13 @@ for i, profile_name in enumerate(profile_names):
     
     if profile_name == 'DSDZ':
         titlename = r'$\frac{ds}{dz}$'
+    elif profile_name == 'PWdiff':
+        titlename = r'$q_v - q_{v,day90}$'
     elif profile_name == 'QV':
         titlename = r'$q_v$'
     elif profile_name == 'RELH':
         titlename = 'RH'
+        units = '%'
     elif profile_name == 'RADQR':
         titlename = r'$Q_r$'
     elif profile_name == 'QN':
@@ -112,15 +153,38 @@ for i, profile_name in enumerate(profile_names):
           vmax = vmax + (np.abs(vmin) - vmax)
        cmap = cm.RdBu_r
     else:
-       cmap = cm.GnBu
-    plt.contourf(tt, zz/1e3, np.transpose(profile), 30, vmin=vmin, vmax=vmax, cmap=cmap)
+       cmap = cm.RdYlGn_r
+    
+    if profile_name == 'PWdiff':
+          vals = np.linspace(-2,2,40)
+          vmin=-2
+          vmax=2
+    elif profile_name == 'RADQR':
+         vmin=-3
+         vmax=3
+         vals=40
+         vals = np.linspace(vmin, vmax, 30)
+    elif profile_name == 'DSDZ':
+         cmap = cm.RdYlGn_r
+         vmin = 0
+         vmax = 0.022
+         vals= np.linspace(vmin, vmax, 30)
+    else:
+         vals=30
+    #cmap = cm.RdYlBu_r
+    plt.contourf(tt, zz/1e3, np.transpose(profile), vals, vmin=vmin, vmax=vmax, cmap=cmap, extend='both')
     #ax.set_yscale('log')
     #plt.yticks([1000, 500, 250, 100, 50, 20])
     #ax.set_ylim(p[-1], p[0])
     #ax.invert_yaxis()
     #ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    plt.colorbar(label='{0} ({1})'.format(titlename, units), orientation='horizontal')
-    plt.title(r'{:s} ({:s}), domain size ({:4.0f} km)$^2$'.format(titlename, units, domsize))
+    if profile_name == 'DSDZ':
+        fmt = '%3.3f'
+    else:
+        fmt = '%3.2f'
+    plt.colorbar(label='{0} ({1})'.format(titlename, units), orientation='horizontal', format=fmt)
+    tt1=plt.title(r'{:s} ({:s}), domain size ({:4.0f} km)$^2$'.format(titlename, units, domsize))
+    tt1.set_position([0.5, 1.02])
     plt.xlabel('t (days)')
     plt.ylabel('z (km)')
     plt.axvline(tdouble, color='b', alpha=0.8)
@@ -141,6 +205,7 @@ for i, profile_name in enumerate(profile_names):
        cmap = cm.RdBu_r
     else:
        cmap = cm.GnBu
+    #cmap = RdYlBu_r
     fracvals = np.linspace(-2,2,40)
     cs=plt.contourf(tt, zz/1e3, np.transpose(fracchange), fracvals, cmap=cmap, extend='both')
     #cs.cmap.set_over('k')
@@ -150,7 +215,8 @@ for i, profile_name in enumerate(profile_names):
     #ax.invert_yaxis()
     #ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     plt.colorbar(label='fractional change', orientation='horizontal')
-    plt.title(r'fractional change in {:s}, domain size ({:4.0f} km)$^2$'.format(titlename, domsize))
+    tt1=plt.title(r'fractional change in {:s}, domain size ({:4.0f} km)$^2$'.format(titlename, domsize))
+    tt1.set_position([0.5, 1.02])
     plt.xlabel('t (days)')
     plt.ylabel('z (km)')
     plt.axvline(tdouble, color='b', alpha=0.8)
@@ -159,12 +225,13 @@ for i, profile_name in enumerate(profile_names):
     plt.savefig(fout + 'fracchangeprofile{0}days_'.format(np.round(t[-1])) + profile_name + '_idealRCE.png')
     plt.clf()
     
-    doublefracvals = np.linspace(-1,1,30)
+    doublefracvals = np.linspace(-2,2,30)
     
     plt.figure(7)
     cs=plt.contourf(tt, zz/1e3, np.transpose(fracchangedouble), doublefracvals, cmap=cmap, extend='both')
     plt.colorbar(label='fractional change', orientation='horizontal')
-    plt.title(r'fractional change in {:s} after domain doubling, domain size ({:4.0f} km)$^2$'.format(titlename, domsize))
+    tt1=plt.title(r'fractional change in {:s} after domain doubling, domain size ({:4.0f} km)$^2$'.format(titlename, domsize))
+    tt1.set_position([0.5, 1.02])
     plt.xlabel('t (days)')
     plt.ylabel('z (km)')
     plt.axvline(tdouble, color='b', alpha=0.8)
@@ -177,22 +244,22 @@ for i, profile_name in enumerate(profile_names):
     plt.figure(3)
     ax = plt.gca()
     #EDIT: TIME TO LOOK AT AVERAGE PROFILES
-    ti = 169
+    ti = -1
     index_taggr = np.where(t >= ti)[0][0]
-    t0 = nave*10
+    #t0 = nave*10
     t0 = 0
     if t0 == 0:
         t0profile = profile[0,:]
     else:
         t0profile = np.mean(profile[t0-nave:t0,:], axis=0)
-    tmidprofile = np.mean(profile[index_taggr-nave:index_taggr,:], axis=0)
+    tmidprofile = np.mean(profile[ti-nave:ti,:], axis=0)
     tmidprofile_prev = np.mean(profile[index_taggr-2*nave:index_taggr-nave, :], axis=0)
     #tendprofile = profile[-1,:]
     #get the profile from the previous day (assume time step in hours)
     tprevendprofile = profile[-nave,:]
     #plt.plot(t0profile, z/1e3, 'k--', label='{0} at day {1}'.format(profile_name, np.round(t[t0])))
-    plt.plot(tmidprofile_prev, z/1e3, 'k-', alpha=0.2, label='{0} at day {1}'.format(titlename, np.round(t[index_taggr-nave])))
-    plt.plot(tmidprofile, z/1e3, 'k-', label='{0} at day {1}'.format(titlename, np.round(t[index_taggr])))
+    plt.plot(t0profile, z/1e3, 'k--', label='{0} at day {1}'.format(titlename, np.round(t[t0])))
+    plt.plot(tmidprofile, z/1e3, 'k-', label='{0} at day {1}'.format(titlename, np.round(t[ti])))
     #plt.plot(tendaveprofile_prev, p, 'r-', label='{:2.2f}-day time averaged {:s} at t = {:3.1f} days'.format(nave/24., profile_name, t[-nave]))
     #plt.plot(tendaveprofile, p, 'k-', label='{:2.2f}-day time averaged {:s} at t = {:3.1f} days'.format(nave/24., profile_name, t[-1]))
     #ax.set_yscale('log')
@@ -290,6 +357,7 @@ for i, ts_name in enumerate(timeseries_names):
     ts = ts_var[:]
     plt.figure(1)
     plt.plot(t, ts, '-k')
+    plt.xlim(0, tdouble)
     plt.title(r'{:s} ({:s}), domain size ({:4.0f} km)$^2$'.format(titlename, ts_var.units, domsize))
     plt.xlabel('time (days)')
     plt.ylabel('{0} ({1})'.format(titlename, ts_var.units))

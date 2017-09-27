@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib.cm as cm
-from matplotlib.colors import LogNorm
 import matplotlib.ticker
 import matplotlib
 from SAM_init_plot.block_fns import blockave3D, blockave2D
@@ -14,7 +13,7 @@ c = constants()
 matplotlib.rcParams.update({'font.size': 26})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
 matplotlib.rcParams.update({'lines.linewidth': 2})
-matplotlib.rcParams.update({'legend.fontsize': 22})
+matplotlib.rcParams.update({'legend.fontsize': 26})
 
 plt.style.use('seaborn-white')
 fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
@@ -35,7 +34,7 @@ fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_
 #nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day090to130*302K.nc')[0]
 
 nc_STAT = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
-nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day210to220*302K.nc')[0]
+nc_in = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 
 #domsize=768
@@ -58,30 +57,33 @@ y = varis2D['y'][:]
 L_v = 2.257*1e6
 rho_w = 1000 #density of water
 
-fac=12
+fac=8
 
-nave2D = 24/fac
-nave3D = 4/fac
+nave2D = 24*fac
+nave3D = 4*fac
 
-times = np.arange(-10*fac, 0)
+times = np.arange(-nave2D, -1)
+
+times = [-1]
 
 db=1
+W_crit = 0.3
 
 
 xx, yy = np.meshgrid(x, y)
 #LWNT: OLR
 #Prec: surface precip
-varname = 'Prec'
-vari = varis2D[varname]
+#varname = 'W500'
+#vari = varis[varname]
 #field = vari[:]
 #field_tave = blockave3D(field, db)
 
 #
 #p = varis3D['p'][:]
 #z = varis3D['z'][:]
-#varname = 'SFCSPEED'
-#varname = 'ALPHA'
-#vari = varis2D[varname]
+varname = 'SFCSPEED'
+varname = 'W500'
+vari = varis2D[varname]
 #plev = 500
 #plevi = np.where(p > plev)[0][-1]
 #wfield_p = varis3D['W'][:,plevi,:,:]
@@ -148,7 +150,7 @@ else:
 #vals = np.linspace(-2, 5, 50)
 
 #PW values
-#vals = np.arange(0, 88, 4)
+#vals = np.arange(0, 88, 2)
 
 #CWP values
 #vals = np.arange(0, 1.3, 0.02)
@@ -166,7 +168,7 @@ else:
 #vals = np.arange(0, 800, 10)
 
 #Prec vals
-vals = np.arange(0, 1000, 10)
+#vals = np.arange(0, 280, 10)
 
 #W blockave vals
 #vals = np.arange(-0.10, 0.5, 0.01)
@@ -190,6 +192,9 @@ vals = np.arange(0, 1000, 10)
 
 #alpha_t = np.zeros(times.size)
 
+#W500 vals
+vals = np.arange(-0.1, 0.6, 0.01)
+
 
 
 
@@ -198,8 +203,10 @@ vals = np.arange(0, 1000, 10)
 for i in times:
     
     t2=i*nave2D
+    t2=i
     print times2D[t2]
     t3=i*nave3D
+    t3=i
     
     if varname == 'CAPE':
      
@@ -361,13 +368,16 @@ for i in times:
     #w_tave = np.mean(wfield_p[t3-nave3D:t3,:,:], axis=0)
     #w_tave = blockave2D(w_tave, db)
     
-    #wvals = [W_crit]
+    wvals = [W_crit]
     
     #PW_field = varis2D['PW'][t2-nave2D:t2,:,:]
     #PW_tave = np.mean(PW_field, axis=0)
     #PW_tave = blockave2D(PW_tave, db)
-    #
+    
     #PWvals = np.arange(0, 88, 8)
+    
+    
+
     
     #field_tave = np.mean(field[t2-nave2D:t2,:,:], axis=0)
     #field_tave = blockave2D(field_tave, db)
@@ -376,15 +386,18 @@ for i in times:
     #U_tave = np.mean(U, axis=0)
     #V = varis['V200'][i-nave2D:i,:,:]
     #V_tave = np.mean(V, axis=0)
+    W500 = varis2D['W500'][t2-nave2D:t2,:,:]
+    W500_tave = np.mean(W500, axis=0)
+    W500_tave = blockave2D(W500_tave, db)
 
     print 'day', times2D[t2]
     #print 'day', times3D[i]
     plt.figure()
     #minvar= np.min(field_tave[~np.isnan(field_tave)])
     #maxvar= np.max(field_tave[~np.isnan(field_tave)])
-    #plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, field_tave[:,:], vals, colors='k', linewidth=0.5, alpha=0.5)
+    cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, W500_tave[:,:], wvals, colors='k', linewidth=1, zorder=1)
     #cs = plt.contour(xx[::db, ::db]/1e3, yy[::db, ::db]/1e3, PW_tave[:,:], PWvals, colors=('k',), alpha=0.3, linewidth=0.5, zorder=1)
-    #cs.collections[0].set_label('W$_c$ = {:3.2f} m/s'.format(W_crit))
+    cs.collections[0].set_label('$w_c$ = {:3.2f} m/s'.format(W_crit))
     #cs.collections[0].set_label('PW')
     #plt.legend(loc='best')
     #q = plt.quiver(xx[::8, ::8]/1e3, yy[::8, ::8]/1e3, U_tave[::8,::8], V_tave[::8,::8], scale=500, alpha=0.8, zorder=1)
@@ -394,15 +407,9 @@ for i in times:
     else:
         xxplot = xx
         yyplot = yy
-    if varname == 'Prec':
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='max')
-    else:
-         plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0, extend='both')
-    cb = plt.colorbar(format='%.0f')
-    #plt.colorbar(format='%.2f')
-    #plt.colorbar()
+    plt.contourf(xxplot[::db, ::db]/1e3, yyplot[::db, ::db]/1e3, field_tave[:,:], vals, cmap=cm.RdYlBu_r, zorder=0)
+    cb = plt.colorbar()
     cb.set_label('({0})'.format(units))
-    #cb.set_format(format='%.2f'))
     #p = plt.quiverkey(q, np.min(x)/1e3+30, np.max(y)/1e3+5, 5, "5 m/s",coordinates='data',color='k', alpha=0.8)
     plt.xlabel('x (km)')
     plt.ylabel('y (km)')
@@ -423,16 +430,16 @@ for i in times:
     else:
         titlename = varname
     if db == 1:
-        plt.title('{:s} at day = {:3.2f}'.format(titlename, times2D[t2]))
+        plt.title('{:s}, day {:3.0f} to {:3.0f} average'.format(titlename, times2D[t2-nave2D], times2D[t2]))
         #plt.title('{:s} [{:s}] at day = {:3.2f}, W$_c$ = {:3.2f} m/s'.format(varname, units, times2D[t2], W_crit))
         #plt.title('mid-level {:s}, day = {:3.2f}'.format(varname, times2D[t2]))
     else:
-        plt.title('{:s} at day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(titlename, times2D[t2], db*(np.diff(x)[0])/1e3))
+        plt.title('{:s}, day {:3.0f} to {:3.0f} average, ({:2.0f} km)$^2$ block-average'.format(titlename, times2D[t2-nave2D], times2D[t2], db*(np.diff(x)[0])/1e3))
         #plt.title('mid-level {:s}, day = {:3.2f}, block-averaging over ({:2.0f} km)$^2$'.format(varname, times2D[t2], db*(np.diff(x)[0])/1e3))
         #plt.title('{:s} [{:s}] at p = {:3.0f} hPa, at t = {:3.2f} days, block-averaging over ({:2.0f} km)$^2$'.format(varname, units, p[plevi], times2D[t2], db*(np.diff(x)[0])/1e3))
     #cb = plt.colorbar(ticks=np.arange(10,90), 10)
 
-    #plt.legend(loc='best')
+    plt.legend(loc='best')
     plt.savefig(fout + '{:s}map_day{:2.2f}db{:2.0f}.jpg'.format(varname, times2D[t2], db))
     #plt.savefig(fout + '{:s}map_p{:3.0f}_day{:2.1f}new.jpg'.format(varname, p[plevi], times2D[t2]))
     plt.close()

@@ -29,18 +29,18 @@ foutdata = '/Users/cpatrizio/data/SST302/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to140_64vert_ubarzero_MOISTDRYPROFS/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to130_64vert_ubarzero_MOISTDRYPROFS/'
 
-fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_MOISTDRYPROFS/'
+fout = '/Users/cpatrizio/Google Drive/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_MOISTDRYPROFS/'
 
 nc_inSTAT1 = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
 nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
 nc_in3D1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
 
 
-nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
+nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*180days*302K.nc')[0]
 nc_in2D2 = glob.glob(fpath2D + '*512x512*3000m*day180to195*302K.nc')[0]
 nc_in3D2 = glob.glob(fpath3D + '*512x512*3000m*day180to195*302K.nc')[0]
 
-nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
+nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*180days*302K.nc')[0]
 nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 nc_in3D3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 
@@ -86,7 +86,7 @@ t3s = [-1, -1, -1]
 aveperiod2D = nave*ntave2D
 aveperiod3D = nave*ntave3D
 
-varnames = ['Nsquared']
+varnames = ['W']
 
 #varnames = ['CLOUD AMOUNT']
 
@@ -126,10 +126,9 @@ varnames = ['Nsquared']
 
 #varnames = ['URADIAL', 'N']
 
-#varnames = ['W']
+varnames = ['W']
 
-varnames = ['TABS']
-varnames = ['QV']
+#varnames = ['Nsquared']
 
 #MAYBE CALCULATE THETA, AND THEN STABILITY?
 
@@ -142,11 +141,11 @@ for i, domsize in enumerate(domsizes):
     
     print 'domain size', domsize
     if domsize == 768:
-        nave=8
+        nave=10
     elif domsize == 1536:
-        nave=8
+        nave=10
     else:
-        nave=8
+        nave=5
         
     aveperiod2D = nave*ntave2D
     aveperiod3D = nave*ntave3D
@@ -215,13 +214,13 @@ for i, domsize in enumerate(domsizes):
     
     #UNCOMMENT TO USE W > W_crit AS CONVECTIVE REGION THRESHOLD
     W=varis3D['W'][t3-aveperiod3D:t3,:,:]
-    W_tave = np.mean(W, axis=0)
+    #W_tave = np.mean(W, axis=0)
     
         
-    db=16
-    W_crit = 0.01
+    db=1
+    W_crit = 0.5
     
-    W_tave = blockave3D(W_tave, db)
+    #W_tave = blockave3D(W_tave, db)
     
     nxprime = nx/db
     nyprime = ny/db
@@ -262,33 +261,14 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'BUOY':
             buoy_fname = glob.glob(foutdata + '*{:d}*_buoy_*to{:3.0f}*'.format(domsize, t3D[-1]))[0]
             print 'loading', buoy_fname
-            #field_tave = np.load(buoy_fname)
-            #field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = np.load(buoy_fname)
-            field_tave = np.mean(field_tave[t3/ntave3D-nave:t3/ntave3D,:,:,:],axis=0)
-            delz3D = np.zeros((nx, ny, nz-1))
-            delz3D[:,:,:] = np.diff(z)
-            delz3D = delz3D.T
-            field_tave = field_tave*delz3D
+            field_tave = np.mean(field_tave[-nave:,:,:,:], axis=0)
             field_tave = blockave3D(field_tave, db)
         
         elif varname == 'CLOUD AMOUNT':
             QN = varis3D['QN'][t3-aveperiod3D:t3,:,:,:]
             QN_tave = np.mean(QN, axis=0)
             field_tave = blockave3D(QN_tave, db)
-        
-        elif varname == 'TABSprime':
-            vari = varis3D['TABS']
-            varname = 'TABSprime'
-            TABS = varis3D['TABS'][t3-aveperiod3D:t3,:,:,:]
-            T_tave = np.mean(TABS, axis=0)
-            T_bar = np.mean(np.mean(T_tave, axis=2), axis=1)
-            T_bar3D = np.zeros(T_tave.shape)
-            T_bar3D = T_bar3D.T
-            T_bar3D[:,:,:] = T_bar
-            T_bar3D = T_bar3D.T
-            Tprime = T_tave - T_bar3D
-            field_tave = blockave3D(Tprime,db)
             
         elif varname == 'THETA':
             p0=1000*1e2
@@ -497,13 +477,17 @@ for i, domsize in enumerate(domsizes):
         else:
             vari = varis3D[varname]
             field = varis3D[varname][t3-aveperiod3D:t3,:,:,:]
-            field_tave = np.mean(field, axis=0)
-            field_tave = blockave3D(field_tave, db)
+            
+            #field_tave = np.mean(field, axis=0)
+            #field_tave = blockave3D(field_tave, db)
    
 
         
         #moist_field = field_tave[:,moist_points]
         #dry_field = field_tave[:,dry_points]
+        
+        nt = field.shape[0]
+        nz = field.shape[1]
         
         moist_prof=[]
         dry_prof=[]
@@ -512,39 +496,50 @@ for i, domsize in enumerate(domsizes):
         Wedge_u = 3
         Wedge_l = 0.5
         
+        moist_prof = np.zeros((nt, nz))
+        dry_prof = np.zeros((nt, nz))
+        #edge_prof =
+        
         print 'calculating convective/dry profile'
-        for zi in np.arange(field_tave.shape[0]):
-            moist_points = W_tave[zi,:,:] >= W_crit
-            dry_points = W_tave[zi,:,:] < W_crit
-            edge_points = np.bitwise_and(W_tave[zi,:,:] <= Wedge_u*W_crit, W_tave[zi,:,:] >= Wedge_l*W_crit)
+        for zi in range(nz):
+            field_block = blockave3D(field[:,zi,:,:])
+            W_block = blockave3D(W[:,zi,:,:])
+            for j in range(nt):
+                W_blockt = W_block[j,:,:]
+                moist_points = W_blockt >= W_crit
+                dry_points = W_blockt < W_crit
+                #edge_points = np.bitwise_and(W_tave[zi,:,:] <= Wedge_u*W_crit, W_tave[zi,:,:] >= Wedge_l*W_crit)
             #print 'z', z[zi]
-           # print 'len edge points', len(edge_points)
-            if varname == 'CLOUD AMOUNT':
-                QNz_m = field_tave[zi,moist_points]
-                QNz_d = field_tave[zi,dry_points]
-                QNz_edge = (field_tave[zi, edge_points])
-                totpoints = 1.*nxprime*nyprime
-                cldpoints_m = len(QNz_m[QNz_m > 0])
-                cldpoints_d = len(QNz_d[QNz_d > 0])
-                cldedgepoints = len(QNz_edge[QNz_edge > 0])
-                moist_bar = (100*cldpoints_m)/totpoints
-                dry_bar = (100*cldpoints_d)/totpoints
-                edge_bar = (100*cldedgepoints)/totpoints
-                moist_prof= moist_prof + [moist_bar]
-                dry_prof = dry_prof + [dry_bar]
-                edge_prof = edge_prof + [edge_bar]
-            else:    
-                moist_bar = np.mean(field_tave[zi, moist_points])
-                dry_bar = np.mean(field_tave[zi, dry_points])
-                edge_bar = np.mean(field_tave[zi, edge_points])
+            #print 'len edge points', len(edge_points)
+                #if varname == 'CLOUD AMOUNT':
+                #    QNz_m = field_tave[zi,moist_points]
+                #    QNz_d = field_tave[zi,dry_points]
+                #    QNz_edge = (field_tave[zi, edge_points])
+                #    totpoints = 1.*nxprime*nyprime
+                #    cldpoints_m = len(QNz_m[QNz_m > 0])
+                #    cldpoints_d = len(QNz_d[QNz_d > 0])
+                #    cldedgepoints = len(QNz_edge[QNz_edge > 0])
+                #    moist_bar = (100*cldpoints_m)/totpoints
+                #    dry_bar = (100*cldpoints_d)/totpoints
+                #    edge_bar = (100*cldedgepoints)/totpoints
+                #    moist_prof= moist_prof + [moist_bar]
+                #    dry_prof = dry_prof + [dry_bar]
+                #    edge_prof = edge_prof + [edge_bar]
+                #else:    
+                moist_bar = np.mean(field_block[j, moist_points])
+                dry_bar = np.mean(field_block[j, dry_points])
+                #edge_bar = np.mean(field_tave[zi, edge_points])
                 #print edge_bar
-                moist_prof= moist_prof + [moist_bar]
-                dry_prof = dry_prof + [dry_bar]
-                edge_prof = edge_prof + [edge_bar]
+                moist_prof[j,i] = moist_prof + [moist_bar]
+                dry_prof[j,i] = dry_prof + [dry_bar]
+                #edge_prof[j,i] = edge_prof + [edge_bar]
                 
-        moist_prof = np.array(moist_prof)
-        dry_prof = np.array(dry_prof)
-        edge_prof = np.array(edge_prof)
+        #moist_prof = np.array(moist_prof)
+        #dry_prof = np.array(dry_prof)
+        #edge_prof = np.array(edge_prof)
+        
+        moist_prof = np.mean(moist_prof, axis=0)
+        dry_prof = np.mean(dry_prof, axis=0)
             
         #moist_prof = np.mean(moist_field, axis=1)
         #dry_prof = np.mean(dry_field, axis=1)
@@ -558,7 +553,7 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'CLOUD AMOUNT':
             units = '%'
         elif varname == 'Nsquared':
-            units = r's$^{{-2}}$'
+            units = r's$^{{-1}}$'
         elif varname == 'W_ADIABATIC':
             units = 'm/s'
         elif varname == 'W_DIABATIC':
@@ -570,8 +565,6 @@ for i, domsize in enumerate(domsizes):
             #cb.set_label(units)
         elif varname == 'BUOY':
             units = 'Pa'
-        elif varname == 'TABSprime':
-            units = 'K'
         else:
             units = vari.units.strip()
             
@@ -595,10 +588,6 @@ for i, domsize in enumerate(domsizes):
             titlename = r'$u_r$'
         elif varname == 'BUOY':
             titlename = r'$\rho \frac{dw}{dt}$'
-        elif varname == 'W':
-            titlename = r'$w$'
-        elif varname == 'TABSprime':
-            titlename = r'$T - \overline{T}$'
         else:
             titlename = varname
             
@@ -610,50 +599,21 @@ for i, domsize in enumerate(domsizes):
         dry_prof = dry_prof[interior]
         edge_prof = edge_prof[interior]
         
-        p_BL = 950*1e2
-        
-        
-        BLi = np.where(p < p_BL)[0][0]
-        
-        mid = np.bitwise_and(zint > 5000, zint < 6000)
-        moist_profmid = moist_prof[mid]
-        dry_profmid = dry_prof[mid]
-        
-        
-        moist_profMIDave = np.mean(moist_profmid[np.isfinite(moist_profmid)])
-        dry_profMIDave = np.mean(dry_profmid[np.isfinite(dry_profmid)])
-        
-        
-        
         moist_profave = np.mean(moist_prof[np.isfinite(moist_prof)])
         dry_profave = np.mean(dry_prof[np.isfinite(dry_prof)])
-        moist_profBL = moist_prof[:BLi]
-        dry_profBL = dry_prof[:BLi]
-        moist_profBLave = np.mean(moist_profBL[np.isfinite(moist_profBL)])
-        dry_profBLave = np.mean(dry_profBL[np.isfinite(dry_profBL)])
         #edge_profave = np.mean(edge_prof)
         
-        print 'moist region vertical average {:s} = {:4.7f} ({:s})'.format(varname, moist_profave, units)
-        print 'dry region vertical average {:s} = {:4.7f} ({:s})'.format(varname, dry_profave, units)
-        print 'moist region variance {:s} = {:4.7f}'.format(varname, np.var(moist_prof[np.isfinite(moist_prof)]))
-        print 'dry region variance {:s} = {:4.7f}'.format(varname, np.var(dry_prof[np.isfinite(dry_prof)]))
-        print 'moist region BL average {:s} = {:4.7f} ({:s})'.format(varname, moist_profBLave, units)
-        print 'dry region BL average {:s} = {:4.7f} ({:s})'.format(varname, dry_profBLave, units)
-        print 'moist region BL variance {:s} = {:4.7f}'.format(varname, np.var(moist_profBL[np.isfinite(moist_profBL)]))
-        print 'dry region BL variance {:s} = {:4.7f}'.format(varname, np.var(dry_profBL[np.isfinite(dry_profBL)]))
-        print 'moist region MID average {:s} = {:4.7f} ({:s})'.format(varname, moist_profMIDave, units)
-        print 'dry region MID average {:s} = {:4.7f} ({:s})'.format(varname, dry_profMIDave, units)
+        print 'moist region vertical average {:s} = {:4.4f} ({:s})'.format(varname, moist_profave, units)
+        print 'dry region vertical average {:s} = {:4.4f} ({:s})'.format(varname, dry_profave, units)
         
         fig = plt.figure(k)
         ax1 = fig.add_subplot(2,1,1)
         #plt.suptitle(r'{:s} ({:s}), convective region {:s} threshold = {:2.1f} {:s}'.format(varname, units, mvarname, mfieldcrit, mvar.units.strip()))
         h1, = ax1.plot(moist_prof, zint/1e3, color=colors[i])
         if db == 1:
-            ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.1f} m/s'.format(titlename, W_crit))
+            ax1.set_title('{:s}, convective region using W > W$_c$ = {:3.3f} m/s'.format(titlename, W_crit))
         else:
-            ax1.set_title('{:s}, Mesoscale Convective Region'.format(titlename, W_crit))
-            #ax1.set_title('{:s}, Convective Region, $w > w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            #plt.suptitle('({:2.0f} km)$^2$ block-averaging'.format(db*(np.diff(x)[0])/1e3), fontsize=30)
+            ax1.set_title('{:s}, convective region using W > W$_c$ = {:3.3f} m/s, block-averaging over ({:2.0f} km)$^2$'.format(titlename, W_crit, db*(np.diff(x)[0])/1e3))
         #axarr[0,].set_xlabel('{:s} ({:s})'.format(varname, vari.units.strip()))
         ax1.set_ylabel('z (km)')
         ax1.set_ylim(z_BL/1e3, z_t/1e3)
@@ -662,11 +622,9 @@ for i, domsize in enumerate(domsizes):
         ax2 = fig.add_subplot(2,1,2)
         ax2.plot(dry_prof, zint/1e3, color=colors[i])
         if db == 1:
-            ax2.set_title('{:s}, Convection-Free Region, $w < w_c$  = {:2.1f} m/s'.format(titlename, W_crit))
+            ax2.set_title('{:s}, convection-free region using W < W$_c$ = {:3.3f} m/s'.format(titlename, W_crit))
         else:
-            #ax2.set_title('{:s}, Convection-Free Region, $w < w_c$ = {:2.2f} m/s'.format(titlename, W_crit))
-            ax2.set_title('{:s}, Dry Region'.format(titlename, W_crit))
-            
+            ax2.set_title('{:s}, convection-free region using W < W$_c$ = {:3.3f} m/s, block-averaging over ({:2.0f} km)$^2$'.format(titlename, W_crit, db*(np.diff(x)[0])/1e3))
         ax2.set_xlabel('{:s} ({:s})'.format(titlename, units))
         ax2.set_ylabel('z (km)')
         ax2.set_ylim(z_BL/1e3, z_t/1e3)
@@ -674,17 +632,15 @@ for i, domsize in enumerate(domsizes):
             ax1.set_xlim((-0.05, 0.16))
             ax2.set_xlim((-0.008, 0))
         if varname == 'W':
-            #ax1.set_xlim(0, 0.2)
-            ax1.set_xlim(0.3, 0.5)
+            ax1.set_xlim(0, 0.2)
+            #ax1.set_xlim(0.5, 0.8)
         if varname == 'RH':
             ax1.set_xlim(0, 100)
             ax2.set_xlim(0, 100)
-        if varname == 'Nsquared':
-            ax1.set_xlim(0, 0.0003)
         #if varname == 'W_DIABATIC':
         #   ax1.set_xlim((
         #axarr[1,].axvline(dry_profave, color='k', alpha=0.5, label='vertical average')
-        label1=r'{:d} km, day {:3.0f} to {:3.0f} average'.format(domsize, t3D[0], t3D[-1])
+        label1=r'day {:3.0f} to {:3.0f} average, domain size = ({:d} km)$^2$'.format(t3D[0], t3D[-1], domsize)
         #fig.legend(hs, labels, 'best')       
         fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
         fig = plt.figure(len(varnames)+k)
@@ -720,7 +676,7 @@ for k, varname in enumerate(varnames):
     ax=plt.subplot(2,1,1)
     ax.legend(hs1, labels, loc='best')
     fig.savefig(fout + '{:s}dryconvprof_Wthresh_blkavg_day250_{:d}day_db{:d}.pdf'.format(varname, nave, db))
-    plt.close(k)
+    #plt.close(k)
     fig=plt.figure(len(varnames)+k)
     ax = fig.gca()
     ax.legend(hs2, labels, loc='best')

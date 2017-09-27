@@ -1,16 +1,39 @@
+import matplotlib as mpl
+mpl.use('Agg')
+from netCDF4 import Dataset
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib
 import matplotlib.cm as cm
-import SAM_init_plot.block_fns
-import SAM_init_plot.misc_fns
-from SAM_init_plot.misc_fns import raddist, radprof
-from SAM_init_plot.block_fns import blockave2D, blockxysort2D, xysort
-from scipy.optimize import curve_fit
-from thermolib.constants import constants
-from matplotlib import rc
+#import SAM_init_plot.block_fns
+#import SAM_init_plot.misc_fns
+#import thermolib
+#from SAM_init_plot.misc_fns import radprof3D, radprof
+from misc_fns import raddist, radprof
+#from SAM_init_plot.block_fns import blockave2D, blockave3D, blockxysort2D
+from block_fns import blockave2D,blockxysort2D, xysort
+#from thermolib.constants import constants
+from constants import constants
+from wsat import wsat
+#from thermolib.wsat import wsat
+
+
+# from netCDF4 import Dataset
+# import matplotlib.pyplot as plt
+# import glob
+# import numpy as np
+# import matplotlib
+# import matplotlib.cm as cm
+# import SAM_init_plot.block_fns
+# import SAM_init_plot.misc_fns
+# from SAM_init_plot.misc_fns import raddist, radprof
+# from SAM_init_plot.block_fns import blockave2D, blockxysort2D, xysort
+# from thermolib.constants import constants
+
 
 #plt.rc('text', usetex=True)
 
@@ -31,38 +54,47 @@ matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 
 plt.style.use('seaborn-white')
 
-fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
-fpath3D = '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
-fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fdata = '/Users/cpatrizio/data/SST302/'
-foutdata = '/Users/cpatrizio/data/SST302/'
-fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_RADIAL/'
+# fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
+# fpath3D = '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
+# fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
+# fdata = '/Users/cpatrizio/data/SST302/'
+# foutdata = '/Users/cpatrizio/data/SST302/'
+# fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_RADIAL/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_RADIAL/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_RADIAL/'
 
-fout='/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
+fout = '/Volumes/GoogleDrive/My Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
+
+fpath2D = '/glade/scratch/patrizio/OUT_2D_nc/'
+fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
+fout = '/glade/scratch/patrizio/OUT_2D_FIGS/'
+fpathSTAT = '/glade/scratch/patrizio/OUT_STAT_nc/'
 
 
 
 #nc_in2D = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
 
 nc_inSTAT1 = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
-nc_in2D1 = glob.glob(fpath + '*256x256*3000m*day230to250*302K.nc')[0]
+nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
 nc_in3D1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
 
-nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*195days*302K.nc')[0]
-nc_in2D2 = glob.glob(fpath + '*512x512*3000m*day180to195*302K.nc')[0]
+nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*180days*302K.nc')[0]
+nc_in2D2 = glob.glob(fpath2D + '*512x512*3000m*day180to195*302K.nc')[0]
 nc_in3D2 = glob.glob(fpath3D + '*512x512*3000m*day180to195*302K.nc')[0]
 
-nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
-nc_in2D3 = glob.glob(fpath + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*180days*302K.nc')[0]
+nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 nc_in3D3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 
-domsizes = [768, 1536, 3072]
-nc_fs = [nc_in2D1, nc_in2D2, nc_in2D3]
-nc_fs3D = [nc_in3D1, nc_in3D2, nc_in3D3]
-nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3]
-colors = ['k', 'r', 'g']
+nc_inSTAT4 = glob.glob(fpathSTAT + '*2048*3000m*.nc')[0]
+nc_in2D4 = glob.glob(fpath2D + '*2048*3000m*.nc')[0]
+nc_in3D4 = glob.glob(fpath3D + '*2048*3000m*.nc')[0]
+
+domsizes = [768, 1536, 3072, 6144]
+nc_fs = [nc_in2D1, nc_in2D2, nc_in2D3, nc_in2D4]
+nc_fs3D = [nc_in3D1, nc_in3D2, nc_in3D3, nc_in3D4]
+nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3, nc_inSTAT4]
+colors = ['k', 'r', 'g', 'm']
 
 
 L_v = 2.257*1e6
@@ -91,7 +123,7 @@ varnames = ['BUOY']
 varnames = ['PW']
 
 
-varnames = ['SHF', 'LHF']
+#varnames = ['SHF', 'LHF']
 
 #varnames = ['LWNTC', 'LWNSC', 'SWNTC', 'SWNSC']
 
@@ -101,7 +133,7 @@ varnames = ['SHF', 'LHF']
 
 #varnames = ['Prec']
 
-colors = ['k', 'r', 'g']
+colors = ['k', 'r', 'g', 'm']
 
 for i, domsize in enumerate(domsizes): 
     
@@ -128,8 +160,10 @@ for i, domsize in enumerate(domsizes):
         nave=8
     elif domsize == 1536:
         nave=8
-    else:
+    elif domsize == 3072:
         nave=8
+    else:
+        nave=5
         
     ntave2D=24
     ntave3D=4
@@ -140,7 +174,7 @@ for i, domsize in enumerate(domsizes):
     aveperiod = nave*ntave2D
     aveperiod3D = nave*ntave3D
     
-    PW = varis2D['PW'][t-aveperiod:t,:,:]
+     PW = varis2D['PW'][t-aveperiod:t,:,:]
     USFC = varis2D['USFC'][t-aveperiod:,:,:]
     VSFC = varis2D['VSFC'][t-aveperiod:,:,:]
     

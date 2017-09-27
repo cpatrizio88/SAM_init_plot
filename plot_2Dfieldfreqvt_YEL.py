@@ -1,23 +1,40 @@
+import matplotlib as mpl
+mpl.use('Agg')
+from netCDF4 import Dataset
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib
 import matplotlib.cm as cm
-from SAM_init_plot.block_fns import blockave2D, blockave3D
-from thermolib.constants import constants
+#import SAM_init_plot.block_fns
+#import SAM_init_plot.misc_fns
+#import thermolib
+#from SAM_init_plot.misc_fns import radprof3D, radprof
+#from misc_fns import radprof3D, radprof
+#from SAM_init_plot.block_fns import blockave2D, blockave3D, blockxysort2D
+from block_fns import blockave2D, blockave3D
+from constants import constants
 import matplotlib.colors as colors
 
-matplotlib.rcParams.update({'font.size': 20})
+matplotlib.rcParams.update({'font.size': 28})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'lines.linewidth': 2})
+matplotlib.rcParams.update({'legend.fontsize': 24})
 
 plt.style.use('seaborn-white')
 
-fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
-fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
+#fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
+#fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64vert_ubarzero_FREQDIST/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to170_64vert_ubarzero_FREQDIST/'
-fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/3072km_SAM_aggrday90to160_64vert_ubarzero_FREQDIST/'
+#fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/3072km_SAM_aggrday90to160_64vert_ubarzero_FREQDIST/'
+
+fpath2D = '/glade/scratch/patrizio/OUT_2D_nc/'
+fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
+fout = '/glade/scratch/patrizio/FREQDIST_FIGS/'
 
 #nc_in3D = glob.glob(fpath3D + '*256x256*3000m*130days*302K.nc')[0]
 #nc_in2D = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
@@ -25,15 +42,17 @@ fout = '/Users/cpatrizio/Google Drive/MS/figures/SST302/3072km_SAM_aggrday90to16
 #nc_in2D = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
 #nc_in2D = glob.glob(fpath2D + '*512x512*3000m*day090to140*302K.nc')[0]
 
-nc_in2D = glob.glob(fpath2D + '*1024x1024*3000m*day090to130*302K.nc')[0]
+#nc_in2D = glob.glob(fpath2D + '*1024x1024*3000m*day090to130*302K.nc')[0]
 
 #nc_fs = glob.glob(fpath2D + '*256*256*3000m*302K.nc')
 #nc_fs = glob.glob(fpath2D + '*512*512*3000m*302K.nc')
-nc_fs = glob.glob(fpath2D + '*1024x1024*3000m*302K.nc')
+#nc_fs = glob.glob(fpath2D + '*1024x1024*3000m*302K.nc')
+nc_fs = nc_in2D = glob.glob(fpath2D + '*2048*3000m*.nc')[0]
 nc_fs = nc_fs[:1]
 #domsize=768
 #domsize=1536
-domsize=3072
+#domsize=3072
+domsize=6144
 
 nc_data2D = Dataset(nc_in2D)
 varis2D = nc_data2D.variables
@@ -61,7 +80,7 @@ fields = np.array([])
 times = np.array([])
 db=1
 
-tinit = 90
+tinit = 200
 
 varname='PW'
 

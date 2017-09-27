@@ -14,8 +14,11 @@ from SAM_init_plot.block_fns import blockxysort2D
 
 c = constants()
 
-matplotlib.rcParams.update({'font.size': 20})
+
+matplotlib.rcParams.update({'font.size': 28})
 matplotlib.rcParams.update({'figure.figsize': (16, 10)})
+matplotlib.rcParams.update({'lines.linewidth': 2})
+matplotlib.rcParams.update({'legend.fontsize': 24})
 
 plt.style.use('seaborn-white')
 
@@ -40,14 +43,14 @@ nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
 #domsize=1536
 domsize=3072
 #fraction of a day to average over.
-fac=1
+fac=3
 ndays=1
 
 ntave2D=int(24*fac)
 ntave3D=int(4*fac)
 
 #EDIT: Time in days to look at streamfunction (t2 and t3 should correspond to the same time)
-ts = np.arange(-5/fac, 0)
+ts = np.arange(-3/fac, 0)
 #ts = np.arange(30/fac, 90/fac)
 ts = ts.astype(int)
 
@@ -60,9 +63,9 @@ ts = ts.astype(int)
 for t in ts:
 
     t2 = t*ntave2D
-    #t2 = -1
+    t2 = -1
     t3 = t*ntave3D
-    #t3 = -1
+    t3 = -1
     
     aveperiod2D = ntave2D
     aveperiod3D = ntave3D
@@ -137,8 +140,8 @@ for t in ts:
         wrbins, wmeans = radprof(w_tave[i,:,:], xx, yy, mcenter, bins)
         delr = np.diff(wrbins)
         wrbin_centers = (wrbins[:-1] + wrbins[1:])/2.
-        chi[i,:] = rhoz_tave[i]*np.cumsum(np.multiply(wrbin_centers*delr, wmeans))
-        psi[i,:] = chi[i,:]/wrbin_centers
+        chi[i,:] = rhoz_tave[i]*np.cumsum(np.multiply(wrbin_centers, wmeans))*delr
+        psi[i,:] = chi[i,:]/(wrbin_centers*delr)
         
         #for j, r in enumerate(wrbin_centers[:-1]):
         #  r1 = wrbin_centers[j+1]
@@ -170,26 +173,32 @@ for t in ts:
        #cvals = np.arange(0, 19)
        vmin=0
        vmax=19
+       titlename = r'$q_v$'
     elif varname=='QN':
        vmin=0
        vmax=0.2
+       titlename = r'$q_n$'
     else:
        cvals=20
+       titlename = varname
     
     fieldmeans = np.transpose(fieldmeans)
     plt.figure()
     ax=plt.gcf().gca()
-    plt.contour(rrpsi/(domsize*1e3), zzpsi/1e3, psi, 15, linewidths=1.5, colors='k', zorder=1)
-    plt.pcolormesh(rr/(domsize*1e3), zz/1e3, fieldmeans, vmin=vmin, vmax=vmax, cmap=cm.RdYlBu_r, zorder=0)
+    cs=plt.contour(rrpsi/(domsize*1e3), zzpsi/1e3, psi, 15, fontsize=24, linewidths=1.5, colors='k', zorder=1)
+    plt.clabel(cs, cs.levels[::2], inline=True, fontsize=16, fmt='%3.2f')
+    plt.pcolormesh(rr/(domsize*1e3), zz/1e3, fieldmeans, vmin=vmin, vmax=vmax, cmap=cm.RdYlGn_r, zorder=0)
     ax.set_ylim((0,16))
-    plt.xlabel(r'$\hat{r}$')
+    plt.xlabel(r'$\hat{r}$', fontsize=38)
     #plt.xlabel('radial distance (km)')
-    plt.ylabel('z (km)')
-    plt.title(r'streamfunction, day {:2.0f} to {:2.0f} average, domain size = ({:3.0f} km)$^2$'.format(t2D[0], t2D[-1], domsize))
+    plt.ylabel('z (km)', fontsize=32)
+    #tt1 = plt.title(r'$\psi$, day {:2.0f} to {:2.0f} average, domain size = ({:3.0f} km)$^2$'.format(t2D[0], t2D[-1], domsize))
+    tt1 = plt.title(r'$\psi$, day {:2.0f} to {:2.0f} average'.format(t2D[0], t2D[-1]))
     cb = plt.colorbar()
+    tt1.set_position([0.5, 1.02])
     ax.set_xlim([0, 1./np.sqrt(2)])
     #ax.set_xlim([0, (1./np.sqrt(2))*domsize])
-    cb.set_label('{:s} ({:3s})'.format(varname, vari.units.strip()))
+    cb.set_label('{:s} ({:3s})'.format(titlename, vari.units.strip()))
     plt.savefig(fout + '{:s}_radial_streamfnday{:2.1f}to{:2.1f}.jpg'.format(varname, t2D[0], t2D[-1]), format='jpg')
     plt.close()
 
