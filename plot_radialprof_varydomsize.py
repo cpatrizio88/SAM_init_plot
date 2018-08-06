@@ -10,7 +10,7 @@ from SAM_init_plot.misc_fns import raddist, radprof
 from SAM_init_plot.block_fns import blockave2D, blockxysort2D, xysort
 from scipy.optimize import curve_fit
 from thermolib.constants import constants
-from matplotlib import rc
+#from matplotlib import rc
 
 #plt.rc('text', usetex=True)
 
@@ -40,7 +40,7 @@ fout = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr250days_64ver
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_RADIAL/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_RADIAL/'
 
-fout='/Users/cpatrizio/Google Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
+fout='/Volumes/GoogleDrive/My Drive/MS/MS figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
 
 
 
@@ -682,8 +682,8 @@ for i, domsize in enumerate(domsizes):
     plt.figure(24)
     plt.plot(QNrbin_centers/(domsize*1e3), GMS, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'GMS (W/m$^2$)')
-    plt.title(r'GMS')
+    plt.ylabel(r'$M$ (W/m$^2$)')
+    plt.title(r'$M$')
     plt.ylim(-160, 160)
     plt.axhline(0, color='b')
     plt.savefig(fout + 'GMSradialprof_day250_{:d}day.pdf'.format(nave))
@@ -691,8 +691,8 @@ for i, domsize in enumerate(domsizes):
     plt.figure(25)
     plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - GMS + SHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'$Q_{net}$ + SHF - GMS (W/m$^2$)')
-    plt.title(r'$Q_{net}$ + SHF - GMS')
+    plt.ylabel(r'$Q_{net}$ + SHF - $M$ (W/m$^2$)')
+    plt.title(r'$Q_{net}$ + SHF - $M$')
     plt.ylim(-160, 160)
     plt.axhline(0, color='b')
     plt.savefig(fout + 'QnetSHFGMSradialprof_day250_{:d}day.pdf'.format(nave))
@@ -700,8 +700,8 @@ for i, domsize in enumerate(domsizes):
     plt.figure(26)
     plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - GMS + LHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'$Q_{net}$ + LHF - GMS (W/m$^2$)')
-    plt.title(r'$Q_{net}$ + LHF - GMS')
+    plt.ylabel(r'$Q_{net}$ + LHF - $M$ (W/m$^2$)')
+    plt.title(r'$Q_{net}$ + LHF - $M$')
     plt.ylim(-160, 160)
     plt.axhline(0, color='b')
     plt.savefig(fout + 'QnetLHFGMSradialprof_day250_{:d}day.pdf'.format(nave))
@@ -718,8 +718,8 @@ for i, domsize in enumerate(domsizes):
     plt.figure(28)
     plt.plot(QNrbin_centers/(domsize*1e3), LHFmeans - GMS, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'LHF - GMS (W/m$^2$)')
-    plt.title(r'LHF - GMS')
+    plt.ylabel(r'LHF - $M$ (W/m$^2$)')
+    plt.title(r'LHF - $M$')
     plt.ylim(-160, 160)
     plt.axhline(0, color='b')
     plt.savefig(fout + 'LHFGMSradialprof_day250_{:d}day.pdf'.format(nave))

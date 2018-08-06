@@ -55,11 +55,11 @@ for k, nc_in in enumerate(ncs):
     print 'domsize', domsize
     
     if domsize == 768:
-        nave=8
+        nave=5
     elif domsize == 1536:
-        nave=8
+        nave=5
     else:
-        nave=8
+        nave=5
         
     aveperiod2D = nave*ntave2D
     aveperiod3D = nave*ntave3D
@@ -192,7 +192,9 @@ for k, nc_in in enumerate(ncs):
         hflux = divhu_tave[i, Wz > Wcrit]
         #verthflux = (rhoz_tave[i+1]*Wh_up - rhoz_tave[i]*Wh_down)
         #vertsflux = (rhoz_tave[i+1]*Ws_up - rhoz_tave[i]*Ws_down)
+        #divh[i] = rhoz_tave[i]*np.nansum(hflux)*((delx*dely)/Aup[i])
         divh[i] = np.nansum(hflux)*((delx*dely)/Aup[i])
+        #divh[i] = rhoz_tave[i]*np.nanmean(hflux)
         #total vertical mass flux convergence in convective region
         #divs[i] = -np.sum(vertmassflux)*delx*dely*(db**2)
         div[i] = -np.nanmean(massflux)

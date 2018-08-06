@@ -31,13 +31,13 @@ fout = '/Users/cpatrizio/data/SST302/'
 #foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggr130days_64vert_ubarzero_STAT/'
 foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggr150days_64vert_ubarzero_STAT/'
 
-#nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
+nc_in3D = glob.glob(fpath3D + '*256x256*3000m*day130days*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*512x512*3000m*day170to180*302K.nc')[0]
 #nc_in3D = glob.glob(fpath3D + '*1024x1024*3000m*day140to150*302K.nc')[0]
 
-#domsize=768
+domsize=768
 #domsize=1536
-domsize=3072
+#domsize=3072
 
 nc_data3D = Dataset(nc_in3D)
 #nc_data2D = Dataset(nc_in2D)

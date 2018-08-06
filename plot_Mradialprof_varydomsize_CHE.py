@@ -1,8 +1,8 @@
-import matplotlib as mpl
-mpl.use('Agg')
+# import matplotlib as mpl
+# mpl.use('Agg')
 from netCDF4 import Dataset
 import site
-site.addsitedir('/glade/scratch/patrizio/thermolib/')
+site.addsitedir('/Users/cpatrizio/repos/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
@@ -63,41 +63,50 @@ plt.style.use('seaborn-white')
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggrday90to140_64vert_ubarzero_RADIAL/'
 #fout = '/Users/cpatrizio/Google Drive/figures/SST302/3072km_SAM_aggrday110to150_64vert_ubarzero_RADIAL/'
 
-fout = '/Volumes/GoogleDrive/My Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
+fout = '/Volumes/GoogleDrive/My Drive/MS/MS figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_RADIAL/'
 
-fpath2D = '/glade/scratch/patrizio/OUT_2D_nc/'
-fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
-fout = '/glade/scratch/patrizio/OUT_2D_FIGS/'
-fpathSTAT = '/glade/scratch/patrizio/OUT_STAT_nc/'
-
-
+fpath3D =  '/Users/cpatrizio/SAM6.10.8/OUT_3D/'
+fpath2D = '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
+fpathSTAT = '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
+#foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/768km_SAM_aggr130days_64vert_ubarzero_STAT/'
+#foutSTAT = '/Users/cpatrizio/Google Drive/figures/SST302/1536km_SAM_aggr130days_64vert_ubarzero_STAT/'
+#fout='/Volumes/GoogleDrive/My Drive/MS/MS figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_STAT/'
+fsave = '/Users/cpatrizio/data/SAM/'
 
 #nc_in2D = glob.glob(fpath2D + '*256x256*3000m*130days*302K.nc')[0]
 
-nc_inSTAT1 = glob.glob(fpathSTAT + '*256x256*3000m*250days*302K.nc')[0]
-nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
-nc_in3D1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*302K.nc')[0]
+nc_inSTAT1 = glob.glob(fpathSTAT + '*256x256*3000m*250days*.nc')[0]
+nc_in2D1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*.nc')[0]
+nc_in3D1 = glob.glob(fpath3D + '*256x256*3000m*day230to250*.nc')[0]
 
-nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*180days*302K.nc')[0]
-nc_in2D2 = glob.glob(fpath2D + '*512x512*3000m*day180to195*302K.nc')[0]
-nc_in3D2 = glob.glob(fpath3D + '*512x512*3000m*day180to195*302K.nc')[0]
+nc_inSTAT2 = glob.glob(fpathSTAT + '*512x512*3000m*195days*.nc')[0]
+nc_in2D2 = glob.glob(fpath2D + '*512x512*3000m*day180to195*.nc')[0]
+nc_in3D2 = glob.glob(fpath3D + '*512x512*3000m*day180to195*.nc')[0]
 
-nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*180days*302K.nc')[0]
-nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
-nc_in3D3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_inSTAT3 = glob.glob(fpathSTAT + '*1024x1024*3000m*220days*302K.nc')[0]
+nc_in2D3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*.nc')[0]
+nc_in3D3 = glob.glob(fpath3D + '*1024x1024*3000m*day170to180*.nc')[0]
 
-nc_inSTAT4 = glob.glob(fpathSTAT + '*2048*3000m*.nc')[0]
-nc_in2D4 = glob.glob(fpath2D + '*2048*3000m*.nc')[0]
-nc_in3D4 = glob.glob(fpath3D + '*2048*3000m*.nc')[0]
+#nc_inSTAT4 = glob.glob(fpathSTAT + '*2048*3000m*.nc')[0]
+#nc_in2D4 = glob.glob(fpath2D + '*2048*3000m*.nc')[0]
+#nc_in3D4 = glob.glob(fpath3D + '*2048*3000m*.nc')[0]
 
-domsizes = [768, 1536, 3072, 6144]
-nc_fs = [nc_in2D1, nc_in2D2, nc_in2D3, nc_in2D4]
-nc_fs3D = [nc_in3D1, nc_in3D2, nc_in3D3, nc_in3D4]
-nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3, nc_inSTAT4]
-colors = ['k', 'r', 'g', 'm']
+domsizes = [768, 1536, 3072]
+# nc_fs = [nc_in2D1, nc_in2D2, nc_in2D3]
+# nc_fs3D = [nc_in3D1, nc_in3D2, nc_in3D3]
+# nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3]
+# colors = ['k', 'r', 'g']
 
-fdata = '/glade/scratch/patrizio/MDATA/'
+# domsizes = [3072]
+# nc_fs = [nc_in2D3]
+# nc_fs3D = [nc_in3D3]
+# nc_STATs = [nc_inSTAT3]
+# colors = ['g']
 
+nc_fs = [nc_in2D1, nc_in2D2, nc_in2D3]
+nc_fs3D = [nc_in3D1, nc_in3D2, nc_in3D3]
+nc_STATs = [nc_inSTAT1, nc_inSTAT2, nc_inSTAT3]
+colors = ['k', 'r','g']
 
 L_v = 2.257*1e6
 rho_w = 1000 #density of water
@@ -122,7 +131,7 @@ varnames = ['Buoy']
 
 varnames = ['W']
 varnames = ['BUOY']
-varnames = ['PW']
+varnames = ['LHF', 'SHF']
 
 
 #varnames = ['SHF', 'LHF']
@@ -135,13 +144,10 @@ varnames = ['PW']
 
 #varnames = ['Prec']
 
-colors = ['k', 'r', 'g', 'm']
+colors = ['k', 'r', 'g']
 
 for i, domsize in enumerate(domsizes): 
-    
-    Mfname = glob.glob(fdata + '{:d}km*0.0.npz'.format(domsize))
-    
-    
+
     
     print 'domsize', domsize
     
@@ -169,7 +175,7 @@ for i, domsize in enumerate(domsizes):
     elif domsize == 3072:
         nave=8
     else:
-        nave=5
+        nave=8
         
     ntave2D=24
     ntave3D=4
@@ -181,10 +187,10 @@ for i, domsize in enumerate(domsizes):
     aveperiod3D = nave*ntave3D
     
     PW = varis2D['PW'][t-aveperiod:t,:,:]
-    USFC = varis2D['USFC'][t-aveperiod:,:,:]
-    VSFC = varis2D['VSFC'][t-aveperiod:,:,:]
+    #USFC = varis2D['USFC'][t-aveperiod:,:,:]
+    #VSFC = varis2D['VSFC'][t-aveperiod:,:,:]
     
-    speedSFC= np.sqrt(np.power(USFC, 2) + np.power(VSFC,2))
+    #speedSFC= np.sqrt(np.power(USFC, 2) + np.power(VSFC,2))
     LWNT = varis2D['LWNT'][t-aveperiod:t,:,:]
     LWNS = varis2D['LWNS'][t-aveperiod:t,:,:]
     SWNT = varis2D['SWNT'][t-aveperiod:t,:,:]
@@ -212,12 +218,89 @@ for i, domsize in enumerate(domsizes):
     t3D = varis3D['time'][t-aveperiod3D:t]
     x = varis2D['x'][:]
     y = varis2D['y'][:]
+    z = varis3D['z'][:]
     nt2D = t2D.size
+    nt3D = t3D.size
     nx = x.size
     ny = y.size
-    #varnames = ['W500']
-    #varnames = ['USFC', 'W500', 'Prec', 'LHF']
-    #varnames = ['PW', 'USFC', 'LHF']
+    nz = z.size
+
+    dt = np.diff(t3D)[0]*(24*3600)
+    delx = np.diff(x)[0]
+    dely = np.diff(y)[0]
+    
+    qv = varis3D['QV'][t-aveperiod3D:t,:,:]
+    qv=qv*1e-3
+    qn = varis3D['QN'][t-aveperiod3D:t,:,:]
+    qn=qn*1e-3
+    T = varis3D['TABS'][t-aveperiod3D:t,:,:]
+        
+    P = varis2D['Prec'][t-aveperiod:t,:,:]
+    LHF = varis2D['LHF'][t-aveperiod:t,:,:]
+    SHF = varis2D['SHF'][t-aveperiod:t,:,:]
+        
+    #qnet_TOA = QNTOA
+    #qnet_s = QNS
+        
+    Enet = QN + LHF + SHF
+    #Enet = Enet[::ntave2D/ntave3D]
+    
+
+    
+    
+    z3D = np.zeros((nz, nx, ny)).T
+    z3D[:,:,:] = z
+    z3D = z3D.T
+    
+    rhoz = p/(c.Rd*np.mean(np.mean(T, axis=3), axis=2))
+        
+    rhoz_tave = np.mean(rhoz, axis=0)
+    rhoz3D = np.zeros((ny, nx, nz))
+    rhoz3D[:,:,:] = rhoz_tave
+    rhoz3D = rhoz3D.T
+    
+    delz = np.diff(z)
+    delz3D = np.zeros((ny, nx, nz-1))
+    delz3D[:,:,:] = delz
+    delz3D = delz3D.T
+
+    #delp = np.diff(p)
+    #delp3D = np.zeros((ny, nx, nz-1))
+    #delp3D[:,:,:] = delp
+    #delp3D = delp3D.T
+
+
+    
+    #TEST LIQUID ICE STATIC ENERGY 
+    qi = np.ma.masked_array(qn, mask = T > 273)
+    np.ma.set_fill_value(qi, 0)
+    qi = qi.data   
+    
+            
+    dhhatdt = np.zeros((nt3D-2, nx, ny))
+    
+    for ti, j in enumerate(np.arange(1,nt3D-1)):
+            print 'day', t3D[j]
+            h_t1 = c.cpd*T[j-1,:] + c.g*z3D + c.lv0*qv[j-1,:] - c.lf*qi[j-1,:]
+            h_t2 = c.cpd*T[j+1,:] + c.g*z3D + c.lv0*qv[j+1,:] - c.lf*qi[j+1,:]
+            
+            h_t1hat = np.nansum(h_t1[:-1,:]*rhoz3D[:-1,:]*delz3D, axis=0)
+            h_t2hat = np.nansum(h_t2[:-1,:]*rhoz3D[:-1,:]*delz3D, axis=0)
+            
+            #h_t1hat = np.nansum(h_t1[:-1,:]*delp3D, axis=0)
+            #h_t2hat = np.nansum(h_t2[:-1,:]*delp3D, axis=0)
+            
+            dhhatdt[ti, :, :] = (h_t2hat - h_t1hat)/(2*dt)
+            
+            
+    M_tave = np.mean(Enet[1:-1,:,:], axis=0) - np.mean(dhhatdt, axis=0)
+
+    #M_tave = np.mean(Enet, axis=0)
+  
+    
+
+    
+    
     
     
     
@@ -239,6 +322,7 @@ for i, domsize in enumerate(domsizes):
     SWNC_tave = np.mean(SWNC, axis=0)
     LWNC_tave = np.mean(LWNC, axis=0)
     
+    
     xx, yy = np.meshgrid(x, y)
     times = np.arange(t2D[0], t2D[-1])
     db=1
@@ -257,6 +341,7 @@ for i, domsize in enumerate(domsizes):
     QN_blocked=blockave2D(QN_tave, db)
     SWNC_blocked = blockave2D(SWNC_tave, db)
     LWNC_blocked = blockave2D(LWNC_tave, db)
+    M_blocked = blockave2D(M_tave, db)
     
     PWxy_sorted = blockxysort2D(PW_tave, xx, yy, db)
     #fieldxy_sorted = blockxysort2D(field_t, xx, yy, db)
@@ -302,6 +387,12 @@ for i, domsize in enumerate(domsizes):
     
     SWNCrbins, SWNCmeans = radprof(SWNC_tave, xx, yy, mcenter, bins)
     SWNCrbin_centers = (SWNCrbins[1:] + SWNCrbins[:-1])/2.
+    
+    Mrbins, Mmeans = radprof(M_tave, xx, yy, mcenter, bins)
+    Mrbin_centers = (Mrbins[1:] + Mrbins[:-1])/2.
+
+    dhhatdtbins, dhhatdtmeans = radprof(np.mean(dhhatdt, axis=0), xx, yy, mcenter, bins)
+    dhhatdtbin_centers = (dhhatdtbins[1:] + dhhatdtbins[:-1])/2.
     
     a=1.5 
     moist_edgePW = np.mean(PW_tave) + a*np.std(PW_tave)  
@@ -428,6 +519,9 @@ for i, domsize in enumerate(domsizes):
             
             
         else:
+            print 'aveperiod', aveperiod
+            print 'varname', varname
+            print 't', t
             vari = varis2D[varname]
             field = varis2D[varname][t-aveperiod:t,:,:]
             field_tave = np.mean(field, axis=0)
@@ -506,8 +600,6 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'W500':
             ax.set_ylim([-0.05, 0.3])
             #ax.set_ylim([-0.006, 0.006])
-        elif varname == 'LHF':
-            ax.set_ylim([60,180])
         elif varname == 'ZC':
             ax.set_ylim([0, 14])
         elif varname == 'Prec':
@@ -532,8 +624,10 @@ for i, domsize in enumerate(domsizes):
             titlename = r'tropospheric average $T - \bar{T}$'
         elif varname == 'SHF':
             titlename = 'SHF'
+            ax.set_ylim([-180,180])
         elif varname == 'LHF':
             titlename = 'LHF'
+            ax.set_ylim([-180,180])
         else: 
             titlename = varname
         
@@ -553,11 +647,12 @@ for i, domsize in enumerate(domsizes):
             units = vari.units.strip()
             #ax.set_ylim([-0.006, 0])
         #plt.plot(fieldrs/1e3, fieldprof, 'k,')
-        plt.plot(fieldrbin_centers/(domsize*1e3), fieldmeans, 'x', mew=2, color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+        plt.plot(fieldrbin_centers/(domsize*1e3), fieldmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
         plt.xlabel(r'$\hat{r}$', fontsize=34)
         #plt.xlabel('radial distance (km)')
-        if varname == 'LHF':
+        if varname == 'LHF' or varname == 'SHF':
             plt.ylabel('{:s} ({:s})'.format(varname, units))
+            plt.axhline(0, color='b')
         else:
             plt.ylabel('{:s} ({:s})'.format(titlename, units))
         #plt.title('{:s} ({:s}), day {:3.0f} to {:3.0f} average, domain size = ({:d} km)$^2$, bin width = {:2.2f}'.format(varname, vari.units.strip(), t2D[0], t2D[-1], domsize, 1./binwidth))
@@ -634,6 +729,9 @@ for i, domsize in enumerate(domsizes):
     plt.xlabel(r'$\hat{r}$')
     plt.ylabel(r'$Q_{r,TOA}$ (W/m$^2$)')
     plt.title(r'$Q_{r,TOA}$')
+    plt.ylim([-180,180])
+    plt.axhline(0, color='b')
+    plt.xlim([0, (1/np.sqrt(2))])
     plt.savefig(fout + 'QTOAradialprof_day250.pdf_{:d}day.pdf'.format(nave))
 
     
@@ -653,8 +751,11 @@ for i, domsize in enumerate(domsizes):
     plt.figure(17)
     plt.plot(QNrbin_centers/(domsize*1e3), QNmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'$Q_{r,net}$ (W/m$^2$)')
-    plt.title(r'$Q_{r,net}$')
+    plt.ylabel(r'$Q_{net}$ (W/m$^2$)')
+    plt.title(r'$Q_{net}$')
+    plt.ylim([-180,180])
+    plt.axhline(0, color='b')
+    plt.xlim([0, (1/np.sqrt(2))])
     plt.savefig(fout + 'QNetradialprof_day250_{:d}day.pdf'.format(nave))
 
     
@@ -720,49 +821,75 @@ for i, domsize in enumerate(domsizes):
     GMS = QNmeans + SHFmeans + LHFmeans
     
     plt.figure(24)
-    plt.plot(QNrbin_centers/(domsize*1e3), GMS, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.plot(Mrbin_centers/(domsize*1e3), Mmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'GMS (W/m$^2$)')
-    plt.title(r'GMS')
-    plt.ylim(-160, 160)
+    plt.ylabel(r'$M$ (W/m$^2$)')
+    plt.title(r'$M$')
+    plt.ylim(-180, 180)
+    plt.xlim([0, (1/np.sqrt(2))])
     plt.axhline(0, color='b')
-    plt.savefig(fout + 'GMSradialprof_day250_{:d}day.pdf'.format(nave))
+    plt.savefig(fout + 'Mradialprof_day250_{:d}day.pdf'.format(nave))
     
     plt.figure(25)
-    plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - GMS + SHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - Mmeans + SHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'$Q_{net}$ + SHF - GMS (W/m$^2$)')
-    plt.title(r'$Q_{net}$ + SHF - GMS')
-    plt.ylim(-160, 160)
-    plt.axhline(0, color='b')
-    plt.savefig(fout + 'QnetSHFGMSradialprof_day250_{:d}day.pdf'.format(nave))
-    
+    plt.ylabel(r'$Q_{net}$ + SHF - $M$ (W/m$^2$)')
+    plt.title(r'$Q_{net}$ + SHF - $M$')
+    plt.ylim(-180, 180)
+    plt.axhline(0, color='b')    
+    plt.xlim([0, (1/np.sqrt(2))])
+    plt.savefig(fout + 'QnetSHFMradialprof_day250_{:d}day.pdf'.format(nave))
+    # 
     plt.figure(26)
-    plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - GMS + LHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.plot(QNrbin_centers/(domsize*1e3), QNmeans - Mmeans + LHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'$Q_{net}$ + LHF - GMS (W/m$^2$)')
-    plt.title(r'$Q_{net}$ + LHF - GMS')
-    plt.ylim(-160, 160)
+    plt.ylabel(r'$Q_{net}$ + LHF - $M$ (W/m$^2$)')
+    plt.title(r'$Q_{net}$ + LHF - $M$')
+    plt.ylim(-180, 180)
     plt.axhline(0, color='b')
-    plt.savefig(fout + 'QnetLHFGMSradialprof_day250_{:d}day.pdf'.format(nave))
-    
+    plt.xlim([0, (1/np.sqrt(2))])
+    plt.savefig(fout + 'QnetLHFMradialprof_day250_{:d}day.pdf'.format(nave))
+    # 
     plt.figure(27)
     plt.plot(QNrbin_centers/(domsize*1e3), QNmeans + LHFmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
     plt.ylabel(r'$Q_{net}$ + LHF (W/m$^2$)')
     plt.title(r'$Q_{net}$ + LHF')
-    plt.ylim(-160, 160)
+    plt.ylim(-180, 180)
     plt.axhline(0, color='b')
+    plt.xlim([0, (1/np.sqrt(2))])
     plt.savefig(fout + 'QneLHFradialprof_day250_{:d}day.pdf'.format(nave))
-    
+    # 
     plt.figure(28)
-    plt.plot(QNrbin_centers/(domsize*1e3), LHFmeans - GMS, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.plot(QNrbin_centers/(domsize*1e3), LHFmeans - Mmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
     plt.xlabel(r'$\hat{r}$', fontsize=34)
-    plt.ylabel(r'LHF - GMS (W/m$^2$)')
-    plt.title(r'LHF - GMS')
-    plt.ylim(-160, 160)
+    plt.ylabel(r'LHF - $M$ (W/m$^2$)')
+    plt.title(r'LHF - $M$')
+    plt.ylim(-180, 180)
     plt.axhline(0, color='b')
-    plt.savefig(fout + 'LHFGMSradialprof_day250_{:d}day.pdf'.format(nave))
+    plt.savefig(fout + 'LHFMradialprof_day250_{:d}day.pdf'.format(nave))
+
+    plt.figure(29)
+    plt.plot(dhhatdtbin_centers/(domsize*1e3), dhhatdtmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.xlabel(r'$\hat{r}$', fontsize=34)
+    plt.ylabel(r'$\langle \partial h/ \partial t \rangle$ (W/m$^2$)')
+    plt.title(r'$\langle \partial h/ \partial t \rangle$')
+    plt.ylim(-180, 180)
+    plt.xlim([0, (1/np.sqrt(2))])
+    plt.axhline(0, color='b')
+    plt.savefig(fout + 'dhhatdtradialprof_day250_{:d}day.pdf'.format(nave))
+    
+    Enetmeans = QNmeans + LHFmeans + SHFmeans
+    
+    plt.figure(30)
+    plt.plot(dhhatdtbin_centers/(domsize*1e3), Enetmeans, '-', color=colors[i],  label='{:d} km, day {:3.0f} to {:3.0f} mean'.format(domsize, t2D[0], t2D[-1]))
+    plt.xlabel(r'$\hat{r}$', fontsize=34)
+    plt.ylabel(r'$Q_{net} + LHF + SHF$ (W/m$^2$)')
+    plt.title(r'$Q_{net} + LHF + SHF$')
+    plt.ylim(-180, 180)
+    plt.xlim([0, (1/np.sqrt(2))])
+    plt.axhline(0, color='b')
+    plt.savefig(fout + 'Enetradialprof_day250_{:d}day.pdf'.format(nave))
 
     
 for vi, varname in enumerate(varnames):
@@ -771,7 +898,7 @@ for vi, varname in enumerate(varnames):
     plt.savefig(fout + '{:s}radialprof_day250_{:d}day.pdf'.format(varname, nave))
     plt.close()
     
-varnames = ['QNTOA', 'QNet', 'SWN', 'LWN', 'SWNclear', 'LWNclear', 'LWNcloud', 'SWNcloud', 'GMS', 'QnetSHFGMS', 'QnetLHFGMS', 'QnetLHF', 'LHFGMS']
+varnames = ['QNTOA', 'QNet', 'SWN', 'LWN', 'SWNclear', 'LWNclear', 'LWNcloud', 'SWNcloud', 'M', 'QnetSHFGMS', 'QnetLHFGMS', 'QnetLHF', 'LHFGMS', 'dhhatdt', 'Enet']
     
 for i, fi in enumerate(np.arange(16,16+len(varnames))):
     plt.figure(fi)

@@ -25,12 +25,12 @@ matplotlib.rcParams.update({'mathtext.fontset': 'cm'})
 plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_STAT/'
-fout = '/Volumes/GoogleDrive/My Drive/MS/figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_STAT/'
+fout = '/Volumes/GoogleDrive/My Drive/MS/MS figures/SST302/varydomsize_SAM_aggr_64vert_ubarzero_STAT/'
 
-nc_in1 = glob.glob(fpath + '*256x256*3000m*250days_302K.nc')[0]
-nc_in2 = glob.glob(fpath + '*512x512*3000m*195days_302K.nc')[0]
-nc_in3 = glob.glob(fpath + '*1024x1024*3000m*220days_302K.nc')[0]
-nc_in4 = glob.glob(fpath + '*2048x2048*3000m*340days_302K.nc')[0]
+nc_in1 = glob.glob(fpath + '*256x256*3000m*250days_302K_rerun.nc')[0]
+nc_in2 = glob.glob(fpath + '*512x512*3000m*195days_302K_rerun.nc')[0]
+nc_in3 = glob.glob(fpath + '*1024x1024*3000m*220days_302K_rerun.nc')[0]
+nc_in4 = glob.glob(fpath + '*2048x2048*3000m*350days_302K.nc')[0]
 
 delx1=3000
 domsize1 = 768
@@ -69,7 +69,7 @@ t3 = nc_vars3['time'][:]
 
 t4d = -24*140 #time when doubling occurs
 
-t4 = nc_vars4['time'][t4d:]
+t4 = nc_vars4['time'][:]
 
 
 tt1, zz1 = np.meshgrid(t1, z1)
@@ -91,10 +91,26 @@ tt4, pp4 = np.meshgrid(t4, p4)
 
 profile_names = ['RELH', 'PRECIP', 'THETAE', 'THETA', 'QN', 'QV', 'QCL', 'QP', 'QPI', 'QCOND', 'TABS', 'U', 'V', 'MSE', 'DSE', 'RADQR', ]
 
-#profile_names = ['QI', 'CAPE']
-timeseries_names = ['PW', 'SHF', 'PREC', 'SWNTOA', 'SWNS', 'CLDLOW', 'CLDHI', 'LWNTOA','LWNS', 'LHF',] 
+profile_names = ['QV']
 
-profile_names = ['QPI']
+#profile_names = ['QI', 'CAPE']
+timeseries_names = ['PW'] 
+
+#timeseries_names = ['Enet']
+
+#timeseries_names = ['dFMSEhatdt']
+
+#timeseries_names = ['M']
+
+timeseries_names = ['FMSEhat']
+
+#profile_names = ['MSE', 'QI', 'FMSE']
+
+
+
+
+
+
 
 #profile_names = ['QP']
 
@@ -102,7 +118,7 @@ profile_names = ['QPI']
 
 nstat=24
 
-taggr = -1
+taggr = 90*24
 t2i = -1
 t3i = -1
 t4i = -1
@@ -338,26 +354,152 @@ for i, ts_name in enumerate(timeseries_names):
     elif ts_name == 'SWNTOA':
         titlename='Q_{net,TOA}'
     elif ts_name == 'SWNS':
-        titlename='$Q_{net,s}'
+        titlename='Q_{net,s}'
     elif ts_name == 'LWNS':
         titlename='Q_{net,s}'
     elif ts_name == 'CLDLOW':
         titlename = 'f_{c,low}'
     elif ts_name == 'CLDHI':
         titlename = 'f_{c,high}'
+    elif ts_name == 'FMSEhat':
+        titlename = r'<h>'
+    elif ts_name == 'dFMSEhatdt':
+        titlename = r'\frac{\partial <h>}{\partial t}'
+    elif ts_name == 'Enet':
+        titlename = r'Q_{net} + LHF + SHF'
+    elif ts_name == 'M':
+        titlename = r'M'
     else:
         titlename = ts_name
     
     
     plt.figure(1, figsize=(18,10))
-    ts_var1 = nc_vars1[ts_name]
-    ts1 = ts_var1[:]
-    ts_var2 = nc_vars2[ts_name]
-    ts2 = ts_var2[:]
-    ts_var3 = nc_vars3[ts_name]
-    ts3 = ts_var3[:]
-    ts_var4 = nc_vars4[ts_name]
-    ts4 = ts_var4[:]
+    if ts_name == 'M':
+        
+        ts_var1 = nc_vars1['LHF']
+        ts1 = nc_vars1['SWNTOA'][:] - nc_vars1['LWNTOA'][:] - (nc_vars1['SWNS'][:] - nc_vars1['LWNS'][:]) + nc_vars1['LHF'][:] + nc_vars1['SHF'][:]
+        
+        ts_var2 = nc_vars2['LHF']
+        ts2 = nc_vars2['SWNTOA'][:] - nc_vars2['LWNTOA'][:] - (nc_vars2['SWNS'][:] - nc_vars2['LWNS'][:]) + nc_vars2['LHF'][:] + nc_vars2['SHF'][:]
+        
+        ts_var3 = nc_vars3['LHF']
+        ts3 = nc_vars3['SWNTOA'][:] - nc_vars3['LWNTOA'][:] - (nc_vars3['SWNS'][:] - nc_vars3['LWNS'][:]) + nc_vars3['LHF'][:] + nc_vars3['SHF'][:]
+        
+        ts_var4 = nc_vars4['LHF']
+        ts4 = nc_vars4['SWNTOA'][:] - nc_vars4['LWNTOA'][:] - (nc_vars4['SWNS'][:] - nc_vars4['LWNS'][:]) + nc_vars4['LHF'][:] + nc_vars4['SHF'][:]
+        
+        ts_var1 = nc_vars1['LHF']
+        ts1dh = c.cpd*nc_vars1['TABS'][:] + c.g*z1 + 1e-3*c.lv0*nc_vars1['QV'][:] - 1e-3*c.lf*nc_vars1['QI'][:]
+        ts1dh = np.sum(ts1dh[:,:-1]*nc_vars1['RHO'][:,:-1]*np.diff(z1),axis=1)
+    
+        ts1dh = (ts1dh[2:] - ts1dh[:-2])/(2.*24*3600*np.diff(t1)[0])
+        t1 = t1[1:-1]
+        
+        ts_var2 = nc_vars2['LHF']
+        ts2dh = c.cpd*nc_vars2['TABS'][:] + c.g*z2 + 1e-3*c.lv0*nc_vars2['QV'][:] - 1e-3*c.lf*nc_vars2['QI'][:]
+        ts2dh = np.sum(ts2dh[:,:-1]*nc_vars2['RHO'][:,:-1]*np.diff(z2),axis=1)
+        
+        ts2dh = (ts2dh[2:] - ts2dh[:-2])/(2.*24*3600*np.diff(t2)[0])
+        t2 = t2[1:-1]
+        
+        ts_var3 = nc_vars3['LHF']
+        ts3dh = c.cpd*nc_vars3['TABS'][:] + c.g*z3 + 1e-3*c.lv0*nc_vars3['QV'][:] - 1e-3*c.lf*nc_vars3['QI'][:]
+        ts3dh = np.sum(ts3dh[:,:-1]*nc_vars3['RHO'][:,:-1]*np.diff(z3),axis=1)
+        
+        ts3dh = (ts3dh[2:] - ts3dh[:-2])/(2.*24*3600*np.diff(t3)[0])
+        t3 = t3[1:-1]
+        
+        ts_var4 = nc_vars4['LHF']
+        ts4dh = c.cpd*nc_vars4['TABS'][:] + c.g*z4 + 1e-3*c.lv0*nc_vars4['QV'][:] - 1e-3*c.lf*nc_vars4['QI'][:]
+        ts4dh = np.sum(ts4dh[:,:-1]*nc_vars4['RHO'][:,:-1]*np.diff(z4),axis=1)
+        
+        ts4dh = (ts4dh[2:] - ts4dh[:-2])/(2.*24*3600*np.diff(t4)[0])
+        t4 = t4[1:-1]
+        
+        ts1 = ts1[1:-1] - ts1dh
+        ts2 = ts2[1:-1] - ts2dh
+        ts3 = ts3[1:-1] - ts3dh
+        ts4 = ts4[1:-1] - ts4dh
+        
+        
+        
+    elif ts_name == 'Enet':
+        ts_var1 = nc_vars1['LHF']
+        ts1 = nc_vars1['SWNTOA'][:] - nc_vars1['LWNTOA'][:] - (nc_vars1['SWNS'][:] - nc_vars1['LWNS'][:]) + nc_vars1['LHF'][:] + nc_vars1['SHF'][:]
+        
+        ts_var2 = nc_vars2['LHF']
+        ts2 = nc_vars2['SWNTOA'][:] - nc_vars2['LWNTOA'][:] - (nc_vars2['SWNS'][:] - nc_vars2['LWNS'][:]) + nc_vars2['LHF'][:] + nc_vars2['SHF'][:]
+        
+        ts_var3 = nc_vars3['LHF']
+        ts3 = nc_vars3['SWNTOA'][:] - nc_vars3['LWNTOA'][:] - (nc_vars3['SWNS'][:] - nc_vars3['LWNS'][:]) + nc_vars3['LHF'][:] + nc_vars3['SHF'][:]
+        
+        ts_var4 = nc_vars4['LHF']
+        ts4 = nc_vars4['SWNTOA'][:] - nc_vars4['LWNTOA'][:] - (nc_vars4['SWNS'][:] - nc_vars4['LWNS'][:]) + nc_vars4['LHF'][:] + nc_vars4['SHF'][:]
+        
+        
+        
+        
+    elif ts_name == 'FMSEhat':
+        ts_var1 = nc_vars1['LHF']
+        ts1 = c.cpd*nc_vars1['TABS'][:] + c.g*z1 + 1e-3*c.lv0*nc_vars1['QV'][:] - 1e-3*c.lf*nc_vars1['QI'][:]
+        ts1 = np.sum(ts1[:,:-1]*nc_vars1['RHO'][:,:-1]*np.diff(z1),axis=1)
+
+        
+        ts_var2 = nc_vars2['LHF']
+        ts2 = c.cpd*nc_vars2['TABS'][:] + c.g*z2 + 1e-3*c.lv0*nc_vars2['QV'][:] - 1e-3*c.lf*nc_vars2['QI'][:]
+        ts2 = np.sum(ts2[:,:-1]*nc_vars2['RHO'][:,:-1]*np.diff(z2),axis=1)
+        
+
+        
+        ts_var3 = nc_vars3['LHF']
+        ts3 = c.cpd*nc_vars3['TABS'][:] + c.g*z3 + 1e-3*c.lv0*nc_vars3['QV'][:] - 1e-3*c.lf*nc_vars3['QI'][:]
+        ts3 = np.sum(ts3[:,:-1]*nc_vars3['RHO'][:,:-1]*np.diff(z3),axis=1)
+        
+
+        ts_var4 = nc_vars4['LHF']
+        ts4 = c.cpd*nc_vars4['TABS'][:] + c.g*z4 + 1e-3*c.lv0*nc_vars4['QV'][:] - 1e-3*c.lf*nc_vars4['QI'][:]
+        ts4 = np.sum(ts4[:,:-1]*nc_vars4['RHO'][:,:-1]*np.diff(z4),axis=1)
+        
+
+        
+    elif ts_name == 'dFMSEhatdt':
+        ts_var1 = nc_vars1['LHF']
+        ts1 = c.cpd*nc_vars1['TABS'][:] + c.g*z1 + 1e-3*c.lv0*nc_vars1['QV'][:] - 1e-3*c.lf*nc_vars1['QI'][:]
+        ts1 = np.sum(ts1[:,:-1]*nc_vars1['RHO'][:,:-1]*np.diff(z1),axis=1)
+    
+        ts1 = (ts1[2:] - ts1[:-2])/(2.*24*3600*np.diff(t1)[0])
+        t1 = t1[1:-1]
+        
+        ts_var2 = nc_vars2['LHF']
+        ts2 = c.cpd*nc_vars2['TABS'][:] + c.g*z2 + 1e-3*c.lv0*nc_vars2['QV'][:] - 1e-3*c.lf*nc_vars2['QI'][:]
+        ts2 = np.sum(ts2[:,:-1]*nc_vars2['RHO'][:,:-1]*np.diff(z2),axis=1)
+        
+        ts2 = (ts2[2:] - ts2[:-2])/(2.*24*3600*np.diff(t2)[0])
+        t2 = t2[1:-1]
+        
+        ts_var3 = nc_vars3['LHF']
+        ts3 = c.cpd*nc_vars3['TABS'][:] + c.g*z3 + 1e-3*c.lv0*nc_vars3['QV'][:] - 1e-3*c.lf*nc_vars3['QI'][:]
+        ts3 = np.sum(ts3[:,:-1]*nc_vars3['RHO'][:,:-1]*np.diff(z3),axis=1)
+        
+        ts3 = (ts3[2:] - ts3[:-2])/(2.*24*3600*np.diff(t3)[0])
+        t3 = t3[1:-1]
+        
+        ts_var4 = nc_vars4['LHF']
+        ts4 = c.cpd*nc_vars4['TABS'][:] + c.g*z4 + 1e-3*c.lv0*nc_vars4['QV'][:] - 1e-3*c.lf*nc_vars4['QI'][:]
+        ts4 = np.sum(ts4[:,:-1]*nc_vars4['RHO'][:,:-1]*np.diff(z4),axis=1)
+        
+        ts4 = (ts4[2:] - ts4[:-2])/(2.*24*3600*np.diff(t4)[0])
+        t4 = t4[1:-1]
+        
+    else:
+        ts_var1 = nc_vars1[ts_name]
+        ts1 = ts_var1[:]
+        ts_var2 = nc_vars2[ts_name]
+        ts2 = ts_var2[:]
+        ts_var3 = nc_vars3[ts_name]
+        ts3 = ts_var3[:]
+        ts_var4 = nc_vars4[ts_name]
+        ts4 = ts_var4[:]
     
     if ts_name == 'PREC' or 'LHF':
         w = nstat*5
@@ -365,18 +507,26 @@ for i, ts_name in enumerate(timeseries_names):
         ts3_smooth = moving_average(ts3, w)
         ts2_smooth = moving_average(ts2, w)
         ts1_smooth = moving_average(ts1, w)
-        plt.plot(t1, ts1, '-k', alpha=0.5, label='{:3.0f} km'.format(domsize1))
-        plt.plot(t2, ts2, '-r', alpha=0.5, label='{:4.0f} km'.format(domsize2))
-        plt.plot(t3, ts3, '-g', alpha=0.5, label='{:4.0f} km'.format(domsize3))
-        plt.plot(t4[t4d:], ts4[t4d:], '-m', alpha=0.5, label='{:4.0f} km'.format(domsize4))
+        plt.plot(t1, ts1, '-k', alpha=0.8, label='{:3.0f} km'.format(domsize1))
+        plt.plot(t2[taggr:], ts2[taggr:], '-r', alpha=0.8, label='{:4.0f} km'.format(domsize2))
+        plt.plot(t3[taggr:], ts3[taggr:], '-g', alpha=0.8, label='{:4.0f} km'.format(domsize3))
+        plt.plot(t4[t4d:], ts4[t4d:], '-m', alpha=0.8, label='{:4.0f} km'.format(domsize4))
         plt.plot(t1[w/2:-w/2+1], ts1_smooth, '-k', linewidth=2)
-        plt.plot(t2[w/2:-w/2+1], ts2_smooth, '-r', linewidth=2)
-        plt.plot(t3[w/2:-w/2+1], ts3_smooth, '-g', linewidth=2)
+        plt.plot(t2[w/2:-w/2+1][taggr:], ts2_smooth[taggr:], '-r', linewidth=2)
+        plt.plot(t3[w/2:-w/2+1][taggr:], ts3_smooth[taggr:], '-g', linewidth=2)
         plt.plot(t4[t4d+w/2:-w/2+1], ts4_smooth, '-m', linewidth=2)
+        if ts_name != 'FMSEhat':
+            plt.axhline(0, color='blue')
+        if ts_name == 'dFMSEhatdt' or ts_name == 'M' or ts_name == 'Enet':
+            plt.ylim(-30,30)
     else:
         plt.plot(t1, ts1, '-k', label='{:3.0f} km'.format(domsize1))
         plt.plot(t2, ts2, '-r', label='{:4.0f} km'.format(domsize2))
         plt.plot(t3, ts3, '-g', label='{:4.0f} km'.format(domsize3))
+        if ts_name != 'FMSEhat':
+            plt.axhline(0, color='blue')
+        #if ts_name == 'dFMSEhatdt':
+            
         plt.plot(t4[t4d:], ts4[t4d:], '-m', label='{:3.0f} km'.format(domsize4))
 
     #plt.title('{0} ({1})'.format(ts_name, ts_var1.units))
@@ -527,42 +677,42 @@ for i, ts_name in enumerate(timeseries_names):
 #plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'cloudtop' + '_idealRCE.pdf')
 #plt.clf()
 
-
-PIpath1_smooth = moving_average(PIpath1/1e3, w)
-PIpath2_smooth = moving_average(PIpath2/1e3, w)
-PIpath3_smooth = moving_average(PIpath3/1e3, w)
-PIpath4_smooth = moving_average(PIpath4/1e3, w)
-
-plt.figure(6, figsize=(18,10))
-plt.clf()
-plt.axvline(tdouble, color='b', alpha=0.8)
-plt.plot(t1, PIpath1/1e3, 'k', alpha=0.5, label='{:3.0f} km'.format(domsize1))
-plt.plot(t2[tdouble*nstat:], PIpath2[tdouble*nstat:]/1e3, 'r', alpha=0.5, label='{:4.0f} km'.format(domsize2))
-plt.plot(t3[tdouble*nstat:], PIpath3[tdouble*nstat:]/1e3, 'g', alpha=0.5, label='{:4.0f} km'.format(domsize3))
-plt.plot(t4, PIpath4/1e3, 'm', alpha=0.5, label='{:4.0f} km'.format(domsize4))
-plt.plot(t1[w/2:-w/2+1], PIpath1_smooth, '-k', linewidth=2.5)
-plt.plot(t2[tdouble*nstat:-w/2+1], PIpath2_smooth[tdouble*nstat-w/2:], '-r', linewidth=2.5)
-plt.plot(t3[tdouble*nstat:-w/2+1], PIpath3_smooth[tdouble*nstat-w/2:], '-g', linewidth=2.5)
-plt.plot(t4[w/2:-w/2+1], PIpath4_smooth, 'm', linewidth=2.5)
-plt.title(r'Precipitating Ice Path, $\int \rho q_{p,i} dz$')
-plt.xlabel('time (days)')
-plt.ylim((0, 0.2))
-plt.ylabel(r'$\int \rho q_{p,i} dz$ (kg m$^{-2}$)')
-plt.legend(loc='best')
-plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'intQPI' + '_idealRCE.pdf')
-plt.close()
-
-nave=10
-
-PIpath1bar = np.mean(PIpath1[-nave*24:])/1e3
-PIpath2bar = np.mean(PIpath2[-nave*24:])/1e3
-PIpath3bar = np.mean(PIpath3[-nave*24:])/1e3
-PIpath4bar = np.mean(PIpath4[-nave*24:])/1e3
-
-print 'average q_p,i, 768 km domain', PIpath1bar
-print 'average q_p,i, 1536 km domain', PIpath2bar
-print 'average q_p,i, 3072 km domain', PIpath3bar
-print 'average q_p,i, 6144 km domain', PIpath4bar
+# 
+# PIpath1_smooth = moving_average(PIpath1/1e3, w)
+# PIpath2_smooth = moving_average(PIpath2/1e3, w)
+# PIpath3_smooth = moving_average(PIpath3/1e3, w)
+# PIpath4_smooth = moving_average(PIpath4/1e3, w)
+# 
+# plt.figure(6, figsize=(18,10))
+# plt.clf()
+# plt.axvline(tdouble, color='b', alpha=0.8)
+# plt.plot(t1, PIpath1/1e3, 'k', alpha=0.5, label='{:3.0f} km'.format(domsize1))
+# plt.plot(t2[tdouble*nstat:], PIpath2[tdouble*nstat:]/1e3, 'r', alpha=0.5, label='{:4.0f} km'.format(domsize2))
+# plt.plot(t3[tdouble*nstat:], PIpath3[tdouble*nstat:]/1e3, 'g', alpha=0.5, label='{:4.0f} km'.format(domsize3))
+# plt.plot(t4, PIpath4/1e3, 'm', alpha=0.5, label='{:4.0f} km'.format(domsize4))
+# plt.plot(t1[w/2:-w/2+1], PIpath1_smooth, '-k', linewidth=2.5)
+# plt.plot(t2[tdouble*nstat:-w/2+1], PIpath2_smooth[tdouble*nstat-w/2:], '-r', linewidth=2.5)
+# plt.plot(t3[tdouble*nstat:-w/2+1], PIpath3_smooth[tdouble*nstat-w/2:], '-g', linewidth=2.5)
+# plt.plot(t4[w/2:-w/2+1], PIpath4_smooth, 'm', linewidth=2.5)
+# plt.title(r'Precipitating Ice Path, $\int \rho q_{p,i} dz$')
+# plt.xlabel('time (days)')
+# plt.ylim((0, 0.2))
+# plt.ylabel(r'$\int \rho q_{p,i} dz$ (kg m$^{-2}$)')
+# plt.legend(loc='best')
+# plt.savefig(fout + 'timeseries_nudge_{0}days_'.format(np.round(t1[t3i])) + 'intQPI' + '_idealRCE.pdf')
+# plt.close()
+# 
+# nave=10
+# 
+# PIpath1bar = np.mean(PIpath1[-nave*24:])/1e3
+# PIpath2bar = np.mean(PIpath2[-nave*24:])/1e3
+# PIpath3bar = np.mean(PIpath3[-nave*24:])/1e3
+# PIpath4bar = np.mean(PIpath4[-nave*24:])/1e3
+# 
+# print 'average q_p,i, 768 km domain', PIpath1bar
+# print 'average q_p,i, 1536 km domain', PIpath2bar
+# print 'average q_p,i, 3072 km domain', PIpath3bar
+# print 'average q_p,i, 6144 km domain', PIpath4bar
 
 # plt.figure(6, figsize=(18,10))
 # plt.clf()

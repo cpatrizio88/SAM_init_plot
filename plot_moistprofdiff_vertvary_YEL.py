@@ -579,7 +579,7 @@ for i, domsize in enumerate(domsizes):
         elif varname == 'ADBWARMplusQRADBAR':
             titlename =  r'$-\bar{w}\frac{d\bar{s}}{dz}$ + Q$_r$'
         elif varname == 'QRAD':
-            titlename = r'Q$_r$'
+            titlename = r'$Q$'
         elif varname == 'ADBWARM':
             titlename = r'$\-wfrac{ds}{dz}$'
         elif varname == 'TABSprime':

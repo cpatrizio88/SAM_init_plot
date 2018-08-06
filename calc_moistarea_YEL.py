@@ -1,14 +1,20 @@
+import matplotlib as mpl
+mpl.use('Agg')
+import site
+site.addsitedir('/glade/scratch/patrizio/thermolib/')
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import matplotlib
 import matplotlib.cm as cm
-from thermolib.wsat import wsat
-from thermolib.constants import constants
-import SAM_init_plot.misc_fns 
-from SAM_init_plot.misc_fns import fracclusterarea
-from SAM_init_plot.block_fns import blockave2D
+#from SAM_init_plot.misc_fns import radprof3D, radprof
+from misc_fns import fracclusterarea
+#from SAM_init_plot.block_fns import blockave2D, blockave3D, blockxysort2D
+from block_fns import blockave2D
+#from thermolib.constants import constants
+from constants import constants
+from wsat import wsat
 
 matplotlib.rcParams.update({'font.size': 20})
 matplotlib.rcParams.update({'figure.figsize': (20, 10)})
@@ -18,15 +24,20 @@ plt.style.use('seaborn-white')
 
 fpath =  '/Users/cpatrizio/SAM6.10.8/OUT_2D/'
 
-nc_in1 = glob.glob(fpath + '*256x256*3000m*day230to250*302K.nc')[0]
-nc_in2 = glob.glob(fpath + '*512x512*3000m*day180to195*302K.nc')[0]
-nc_in3 = glob.glob(fpath + '*1024x1024*3000m*day170to180*302K.nc')[0]
-#nc_in4 = glob.glob(fpath + '*2048x2048*3000m*day340to350*302K.nc')[0]
+fpath2D = '/glade/scratch/patrizio/OUT_2D_nc/'
+fpath3D = '/glade/scratch/patrizio/OUT_3D_nc/'
+fout = '/glade/scratch/patrizio/OUT_2D_FIGS/'
+fpathSTAT = '/glade/scratch/patrizio/OUT_STAT_nc/'
 
-nc_in = [nc_in1, nc_in2, nc_in3]
-domsize = [768, 1536, 3072]
-#nc_in = [nc_in1, nc_in2, nc_in3, nc_in4]
-#domsize = [768, 1536, 3072, 6144]
+nc_in1 = glob.glob(fpath2D + '*256x256*3000m*day230to250*302K.nc')[0]
+nc_in2 = glob.glob(fpath2D + '*512x512*3000m*day180to195*302K.nc')[0]
+nc_in3 = glob.glob(fpath2D + '*1024x1024*3000m*day170to180*302K.nc')[0]
+nc_in4 = glob.glob(fpath2D + '*2048x2048*3000m*day340to350*302K.nc')[0]
+
+#nc_in = [nc_in1, nc_in2, nc_in3]
+#domsize = [768, 1536, 3072]
+nc_in = [nc_in1, nc_in2, nc_in3, nc_in4]
+domsize = [768, 1536, 3072, 6144]
 
 #average overndays days
 ndays=8
